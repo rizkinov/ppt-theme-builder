@@ -1,289 +1,296 @@
-# CBRE Web Elements
+# PPT Theme Builder
 
-A modern React component library styled according to CBRE's design system. Built on top of shadcn/ui and Tailwind CSS, this library provides a consistent, accessible, and customizable UI toolkit for CBRE web applications.
+A web application for creating and customizing PowerPoint templates (.POTX) with full control over theme colors, fonts, layouts, and more.
 
-**Built with Next.js 15 and React 19.**
+## 🎯 Features
 
-## Features
+### ✅ Complete Implementation
 
-- **CBRE Design System**: Components adhering to CBRE's brand guidelines
-- **Consistent Interface**: Standardized components with consistent styling and behavior
-- **TypeScript Support**: Fully typed components for improved developer experience
-- **Modular Architecture**: Import only the components you need
-- **Accessibility**: Built with accessibility in mind
-- **Framework Agnostic**: Works with any React-based framework (Next.js, Remix, Create React App)
+1. **Theme Colors** - 12-color scheme editor matching PowerPoint's internal structure
+   - Dark 1, Dark 2, Light 1, Light 2
+   - Accent 1-6
+   - Hyperlink & Followed Hyperlink colors
+   - Live color picker with hex input
+   - Color palette preview
 
-## Table of Contents
+2. **Typography System** - Complete font management and text styles
+   - Font uploader supporting TTF/OTF files
+   - Font preview in web app
+   - 7 text style editors:
+     - Heading (H1)
+     - Subtitle (H2)
+     - Body Large
+     - Body Small
+     - Quote
+     - Bullet List
+     - Link
+   - Configurable: font family, size, weight, line height, letter spacing, color, text transform
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Components](#components)
-- [Project Structure](#project-structure)
-- [Theming](#theming)
-- [Contributing](#contributing)
-- [Development](#development)
+3. **Slide Layouts** - Predefined layout templates
+   - 16:9 Widescreen (1920×1080) support
+   - A4 Landscape (297×210mm) support
+   - 6 predefined layouts:
+     - Title Slide
+     - Title + Content
+     - Two Content
+     - Comparison
+     - Section Header
+     - Blank
+   - Visual preview of each layout
+   - Select multiple layouts for template
 
-## Installation
+4. **Guides & Grid System** - Visual layout guides
+   - Add horizontal and vertical guides
+   - Drag to position or enter precise pixel values
+   - Quick presets (center, thirds)
+   - Visual canvas preview
+   - Guides visible in PowerPoint master view
 
-### Using npm
+5. **Live Preview** - Real-time template preview
+   - HTML/CSS mockup of slides
+   - Preview all selected layouts
+   - Show/hide guides toggle
+   - Theme colors display
+   - Typography styles showcase
+   - Template summary
+
+6. **Export System** - Full .potx generation
+   - **True Office Open XML generation** - Proper .potx template files
+   - Creates real master slides and slide layouts
+   - Theme colors appear in PowerPoint's Design tab color picker
+   - Font schemes properly configured
+   - ZIP package with:
+     - Template.potx file (true PowerPoint template)
+     - fonts/ folder with uploaded fonts
+     - manifest.json with metadata
+     - README.txt with installation instructions
+   - One-click download
+   - Validation before export
+
+## 🏗️ Architecture
+
+### Frontend
+- **Framework**: Next.js 14 with React
+- **Styling**: TailwindCSS with CBRE theme
+- **UI Components**: Existing CBRE component library
+- **State Management**: Zustand with persistence
+- **File Handling**: Font upload with preview using opentype.js
+
+### Backend
+- **API Routes**: Next.js API routes
+- **PowerPoint Generation**: Custom Office Open XML (OOXML) generator
+  - Direct XML generation for proper .potx files
+  - True master slides and slide layouts
+  - Proper theme color and font scheme integration
+- **ZIP Packaging**: JSZip library
+- **Font Handling**: File upload with validation
+
+### State Management
+- Zustand store with localStorage persistence
+- Complete template configuration stored
+- Undo/redo ready (not implemented yet)
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+### Installation
 
 ```bash
-npm install cbre-web-elements
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
 ```
 
-### Using yarn
+The application will be available at `http://localhost:3000` (or 3001 if 3000 is in use).
+
+### Building for Production
 
 ```bash
-yarn add cbre-web-elements
+npm run build
+npm start
 ```
 
-### Using pnpm
-
-```bash
-pnpm add cbre-web-elements
-```
-
-### Installing from GitHub
-
-```bash
-npm install git+https://github.com/rizkinov/cbre-web-elements.git
-```
-
-### Required Peer Dependencies
-
-Ensure you have the necessary peer dependencies installed:
-
-```bash
-npm install react@^19 react-dom@^19 next@^15 tailwindcss@^4
-```
-
-**Note:** Due to current dependency compatibility with React 19, you might need to use the `--legacy-peer-deps` flag when installing dependencies in your project if you encounter peer dependency conflicts (e.g., `npm install --legacy-peer-deps`).
-
-## Usage
-
-### Basic Import and Usage
-
-```jsx
-import { CBRE } from 'cbre-web-elements';
-
-function App() {
-  return (
-    <div>
-      <h1>My CBRE Application</h1>
-      <CBRE.CBREButton variant="primary">Click Me</CBRE.CBREButton>
-    </div>
-  );
-}
-```
-
-### Tailwind CSS Configuration
-
-Add the CBRE theme to your Tailwind configuration. Note that this example uses ES Module syntax, which is required since the library uses `"type": "module"`.
-
-```js
-// tailwind.config.js
-import { cbreTheme } from 'cbre-web-elements/theme';
-
-/** @type {import('tailwindcss').Config} */
-const config = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
-    './app/**/*.{js,ts,jsx,tsx}', // Include if using Next.js App Router
-    './node_modules/cbre-web-elements/dist/**/*.js',
-  ],
-  theme: {
-    extend: {
-      colors: cbreTheme.colors,
-      fontFamily: cbreTheme.typography.fonts,
-      borderRadius: cbreTheme.borderRadius,
-    },
-  },
-  plugins: [],
-};
-
-export default config;
-```
-
-### Namespace Organization
-
-The library uses namespaces to organize components and avoid naming conflicts:
-
-```jsx
-import { UI, CBRE, Blocks } from 'cbre-web-elements';
-
-// Base shadcn components
-<UI.Button>Base Button</UI.Button>
-
-// CBRE-styled components
-<CBRE.CBREButton>CBRE Button</CBRE.CBREButton>
-
-// Block components (higher-level compositions)
-<Blocks.CBRECtaBlock title="Ready to get started?">
-  <CBRE.CBREButton>Get in touch</CBRE.CBREButton>
-</Blocks.CBRECtaBlock>
-```
-
-## Components
-
-### User Interface Components
-
-CBRE Web Elements provides a comprehensive set of UI components:
-
-#### General
-
-- `CBREButton`: Primary action component with multiple variants
-- `CBREBadge`: Status indicators and labels
-- `CBREArrowButton`: Animated buttons with arrow indicators
-- `CBRECard`: Content containers with CBRE styling
-- `CBREStyledCard`: Enhanced cards with specific styling options
-
-#### Navigation
-
-- `CBREDropdownMenu`: Expandable menu for actions
-- `CBREResizable`: Resizable layout elements
-- `CBRESidebar`: Navigational sidebar with CBRE styling
-- `CBRETabs`: Tabbed interface for content organization
-- `CBREToggle`: Toggle component for on/off states
-- `CBREToggleGroup`: Group of toggles for selection
-- `CBRETooltip`: Informational hover tooltips
-
-#### Form Components
-
-- `CBRECheckbox`: Checkbox form element
-- `CBREDatePicker`: Date selection component
-- `CBRESelect`: Dropdown select component
-
-#### Data Display
-
-- `CBRETable`: Tabular data display
-- `CBREDataTable`: Enhanced table with sorting, pagination, etc.
-- `CBREAccordion`: Expandable content sections
-- `CBREChart`: Data visualization components
-- `CBREHoverCard`: Rich hover cards for additional information
-
-#### Feedback
-
-- `CBREToast`: Notifications and alerts
-- `CBRESeparator`: Visual dividers
-
-### Block Components
-
-Higher-level composed components:
-
-- `CBRECtaBlock`: Call-to-action block with title and content
-- `CBREQuoteBlock`: Quote display block with attribution
-
-## Project Structure
-
-The repository is organized as follows:
+## 📁 Project Structure
 
 ```
-cbre-web-elements/
-├── src/                  # Source code
-│   ├── components/       # Component files
-│   │   ├── ui/           # Base shadcn components
-│   │   ├── cbre/         # CBRE-specific components
-│   │   └── blocks/       # Higher-level block components
-│   ├── lib/              # Utility functions
-│   ├── hooks/            # Custom React hooks
-│   └── styles/           # Global styles and theme
-├── app/                  # Demo application (Next.js App Router)
-│   └── elements-example/ # Component examples
-├── config/               # Configuration files
-├── scripts/              # Build and utility scripts
-└── public/               # Static assets
+app/
+├── builder/              # Main builder application
+│   ├── layout.tsx       # Dashboard layout with sidebar
+│   ├── theme/           # Theme colors page
+│   ├── typography/      # Typography & fonts page
+│   ├── layouts/         # Slide layouts page
+│   ├── guides/          # Guides & grid page
+│   ├── preview/         # Live preview page
+│   └── export/          # Export & download page
+├── api/
+│   └── export/          # Export API endpoint
+│       └── route.ts
+src/
+├── components/
+│   ├── builder/         # Builder-specific components
+│   │   ├── BuilderSidebar.tsx
+│   │   ├── PageHeader.tsx
+│   │   ├── ColorPicker.tsx
+│   │   ├── FontUploader.tsx
+│   │   ├── TextStyleEditor.tsx
+│   │   └── SlidePreview.tsx
+│   └── cbre/            # CBRE UI components (existing)
+├── lib/
+│   └── builder/
+│       ├── types.ts            # TypeScript types
+│       ├── defaults.ts         # Default values & layouts
+│       ├── store.ts            # Zustand state management
+│       └── potx-generator.ts   # PowerPoint generation logic
 ```
 
-## Theming
+## 🎨 Design System
 
-### CBRE Color Palette
+All components use the CBRE design system:
+- **Colors**: CBRE Green, Accent Green, Dark Grey, Light Grey, etc.
+- **Typography**: Financier Display (headings), Calibre (body)
+- **Components**: CBREButton, CBRECard, CBRESelect, etc.
+- **Styling**: Sharp corners (no border radius), CBRE color palette
 
-| Color | Hex |
-|-------|-----|
-| CBRE Green | `#003F2D` |
-| Accent Green | `#17E88F` |
-| Dark Green | `#012A2D` |
-| Dark Grey | `#435254` |
-| Light Grey | `#CAD1D3` |
-| Lighter Grey | `#E6E8E9` |
+## 🔧 Usage
 
-### CSS Variables
+### 1. Theme Colors
+- Navigate to "Theme Colors" in the sidebar
+- Edit the 12 PowerPoint theme colors using color pickers
+- Preview the complete palette at the bottom
 
-CBRE Web Elements uses CSS variables for theming that you can override:
+### 2. Typography
+- Go to "Typography" page
+- Upload heading and body fonts (TTF/OTF)
+- Configure 7 text styles using the tabs
+- Adjust font size, weight, spacing, color, etc.
 
-```css
-:root {
-  --cbre-green: #003F2D;
-  --accent-green: #17E88F;
-  --dark-green: #012A2D;
-  --dark-grey: #435254;
-  --light-grey: #CAD1D3;
-  --lighter-grey: #E6E8E9;
-}
-```
+### 3. Layouts
+- Select "Layouts" from sidebar
+- Choose slide size (16:9 or A4)
+- Select which layouts to include in template
+- See visual preview of each layout
 
-### Customizing Components
+### 4. Guides & Grid
+- Open "Guides & Grid" page
+- Add horizontal/vertical guides
+- Use quick presets or enter precise positions
+- See guides overlaid on slide canvas
 
-You can customize components using Tailwind classes:
+### 5. Preview
+- Go to "Preview" to see everything together
+- Toggle guide visibility
+- Review theme colors, typography, and layouts
+- Check template summary
 
-```jsx
-<CBRE.CBREButton 
-  className="bg-blue-500 hover:bg-blue-600 text-white"
->
-  Custom Button
-</CBRE.CBREButton>
-```
+### 6. Export
+- Navigate to "Export" page
+- Set template name
+- Review configuration summary
+- Click "Export Template" to download ZIP
 
-## Contributing
+### 7. Install & Use
+- Extract the downloaded ZIP file
+- Install fonts from fonts/ folder first
+- Follow README.txt instructions
+- Open the .potx file in PowerPoint
+- Start creating presentations!
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
+## 🎯 Key Features & Highlights
 
-### Code of Conduct
+### ✨ What Makes This Special
+1. **Web-based template builder** - No PowerPoint needed to create templates
+2. **Live preview** - See changes in real-time
+3. **Font bundling** - Fonts included in ZIP for easy installation
+4. **Master slides** - Proper PowerPoint master slide architecture
+5. **CBRE styling** - Professional, branded interface
+6. **Persistent state** - Configuration saved in browser
+7. **Validation** - Prevents export with incomplete config
 
-This project adheres to a [Code of Conduct](CONDUCT.md). By participating, you are expected to uphold this code.
+### 🎨 CBRE Brand Integration
+- Uses only CBRE colors from theme
+- All components styled with CBRE design system
+- Default theme colors set to CBRE palette
+- Professional, corporate aesthetic
 
-## Development
+## 📦 Dependencies
 
-This project uses ES Modules (`"type": "module"`). Ensure your configuration files (like `next.config.js`, `tailwind.config.js`) use ES Module syntax (`import`/`export default`).
+### Production
+- `next` - React framework
+- `react` & `react-dom` - UI library
+- `zustand` - State management
+- `pptxgenjs` - PowerPoint generation
+- `jszip` - ZIP packaging
+- `opentype.js` - Font parsing
+- `lucide-react` - Icons
+- `tailwindcss` - Styling
+- `sonner` - Toast notifications
 
-### Setup
+### CBRE Components (existing)
+- All shadcn/ui components
+- Custom CBRE-styled components
+- Radix UI primitives
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/rizkinov/cbre-web-elements.git
-   cd cbre-web-elements
-   ```
+## 🚧 Future Enhancements
 
-2. Install dependencies:
-   ```bash
-   npm install --legacy-peer-deps
-   ```
-   *(The `--legacy-peer-deps` flag is currently needed due to `react-day-picker`'s peer dependency requirements with React 19.)*
+### Phase 2 Features (Not Yet Implemented)
+- [ ] Server-side .potx rendering preview
+- [ ] Import existing .potx files for editing
+- [ ] Custom layout editor (drag-and-drop placeholders)
+- [ ] Font embedding in .potx (license permitting)
+- [ ] Template versioning
+- [ ] Collaboration features
+- [ ] Template gallery/library
+- [ ] AI-powered layout suggestions
+- [ ] Figma/Canva integration
+- [ ] Advanced placeholder types (charts, tables, etc.)
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+### Known Limitations
+1. **Font Embedding**: Fonts are not embedded in .potx - users must install them separately
+2. **Layout Editor**: Only predefined layouts available (no custom drag-and-drop)
+3. **Chart/Table Placeholders**: Only text placeholders currently supported
 
-### Building the Library
+## 🧪 Testing
 
-```bash
-npm run build:lib
-```
+### To Test the Application
+1. Run `npm run dev`
+2. Navigate to `http://localhost:3001`
+3. Go through each section:
+   - Edit theme colors
+   - Upload fonts and configure typography
+   - Select layouts and slide size
+   - Add guides
+   - Preview the template
+   - Export and download
+4. Extract ZIP and test in PowerPoint
 
-### Creating a New Component
+### Testing the Export
+1. Install fonts from fonts/ folder
+2. Open the .potx file in PowerPoint
+3. Create new presentation from template
+4. Verify theme colors appear in color picker
+5. Verify layouts are available
+6. Verify fonts render correctly (if installed)
+7. Check guides in Master Slide view
 
-```bash
-npm run generateComp
-```
+## 📄 License
 
-### Running Tests
+MIT
 
-```bash
-npm test
-```
+## 👥 Credits
 
-## License
+Built with:
+- Next.js
+- React
+- TailwindCSS
+- CBRE Design System
+- PptxGenJS
+- Shadcn/ui components
 
-MIT © CBRE
+---
+
+**Note**: This is an MVP implementation focused on core functionality. See "Future Enhancements" for planned features.

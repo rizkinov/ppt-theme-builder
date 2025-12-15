@@ -2,46 +2,16 @@
   "name": "ppt-theme-builder",
   "version": "0.1.0",
   "description": "PPT Theme Builder",
-  "private": false,
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "private": true,
   "type": "module",
-  "files": [
-    "dist",
-    "src",
-    "config"
-  ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.esm.js",
-      "require": "./dist/index.js"
-    },
-    "./theme": {
-      "types": "./dist/config/cbre-theme.d.ts",
-      "import": "./config/cbre-theme.js",
-      "require": "./config/cbre-theme.js"
-    }
-  },
-  "sideEffects": false,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:src": "next lint src/",
-    "validate:full": "npm run type-check && npm run lint && npm run build:lib",
-    "clean": "rimraf dist",
-    "build:lib": "npm run clean && rollup -c",
     "generateComp": "node scripts/generate-component.js",
     "test": "jest",
-    "prepack": "npm run build:lib",
-    "validate": "npm run type-check && npm run build:lib",
-    "type-check": "tsc --noEmit --project tsconfig.lib.json",
-    "test:build": "npm run build:lib && node -e \"console.log('✅ Library build successful')\"",
-    "test:exports": "node -e \"try { const fs = require('fs'); const path = require('path'); const cjsExists = fs.existsSync(path.join(__dirname, 'dist', 'index.js')); const esmExists = fs.existsSync(path.join(__dirname, 'dist', 'index.esm.js')); const typesExists = fs.existsSync(path.join(__dirname, 'dist', 'index.d.ts')); if (cjsExists && esmExists && typesExists) { console.log('✅ All build artifacts created successfully'); console.log('✅ CommonJS: dist/index.js'); console.log('✅ ESM: dist/index.esm.js'); console.log('✅ Types: dist/index.d.ts'); } else { console.error('❌ Missing build artifacts'); process.exit(1); } } catch(e) { console.error('❌ Export test failed:', e.message); process.exit(1); }\"",
-    "prepublishOnly": "npm run validate && npm run test:exports"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -74,10 +44,13 @@
     "embla-carousel-react": "^8.6.0",
     "jszip": "^3.10.1",
     "lucide-react": "^0.487.0",
+    "next": "^15.3.5",
     "next-themes": "^0.4.6",
     "opentype.js": "^1.3.4",
     "pptxgenjs": "^4.0.1",
+    "react": "^19.1.0",
     "react-day-picker": "^9.8.0",
+    "react-dom": "^19.1.0",
     "react-hook-form": "^7.55.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
@@ -87,11 +60,16 @@
     "zod": "^3.25.76",
     "zustand": "^5.0.8"
   },
-  "peerDependencies": {
-    "next": "^15.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwindcss": "^4.0.0"
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   },
   "keywords": [
     "ppt",
@@ -103,33 +81,5 @@
     "tailwindcss"
   ],
   "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "@babel/core": "^7.26.10",
-    "@babel/preset-env": "^7.26.9",
-    "@babel/preset-react": "^7.26.3",
-    "@babel/preset-typescript": "^7.27.0",
-    "@eslint/eslintrc": "^3",
-    "@rollup/plugin-babel": "^6.0.4",
-    "@rollup/plugin-commonjs": "^28.0.3",
-    "@rollup/plugin-node-resolve": "^16.0.1",
-    "@rollup/plugin-typescript": "^12.1.2",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.2.4",
-    "glob": "^11.0.1",
-    "next": "^15.3.5",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.39.0",
-    "rollup-plugin-dts": "^6.2.1",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-postcss": "^4.0.2",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+  "license": "MIT"
 }
