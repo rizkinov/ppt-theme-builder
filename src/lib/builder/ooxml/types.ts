@@ -1,0 +1,76 @@
+/**
+ * Types for Office Open XML PowerPoint generation
+ */
+
+export interface OOXMLThemeColors {
+  dk1: string;  // Dark 1
+  lt1: string;  // Light 1
+  dk2: string;  // Dark 2
+  lt2: string;  // Light 2
+  accent1: string;
+  accent2: string;
+  accent3: string;
+  accent4: string;
+  accent5: string;
+  accent6: string;
+  hlink: string;    // Hyperlink
+  folHlink: string; // Followed Hyperlink
+}
+
+export interface OOXMLFontScheme {
+  majorFont: string;  // Headings
+  minorFont: string;  // Body
+}
+
+export interface OOXMLSlideSize {
+  cx: number;  // Width in EMUs (English Metric Units)
+  cy: number;  // Height in EMUs
+}
+
+export interface OOXMLPlaceholder {
+  type: 'ctrTitle' | 'subTitle' | 'title' | 'body' | 'dt' | 'ftr' | 'sldNum';
+  idx: number;
+  x: number;   // EMUs
+  y: number;   // EMUs
+  cx: number;  // EMUs
+  cy: number;  // EMUs
+}
+
+export interface OOXMLSlideLayout {
+  id: string;
+  name: string;
+  type: string;  // PowerPoint layout type
+  placeholders: OOXMLPlaceholder[];
+}
+
+export interface OOXMLGuide {
+  orient: 'horz' | 'vert';
+  pos: number;  // Offset from center in points (12700 EMUs per point). Negative = left/top, Positive = right/bottom
+}
+
+// 1 inch = 914400 EMUs
+// 1 point = 12700 EMUs
+// 1 pixel at 96 DPI = 9525 EMUs
+export const EMU_PER_INCH = 914400;
+export const EMU_PER_POINT = 12700;
+export const EMU_PER_PIXEL = 9525;
+
+export function pixelsToEMU(px: number): number {
+  return Math.round(px * EMU_PER_PIXEL);
+}
+
+export function inchesToEMU(inches: number): number {
+  return Math.round(inches * EMU_PER_INCH);
+}
+
+export function pointsToEMU(points: number): number {
+  return Math.round(points * EMU_PER_POINT);
+}
+
+// Standard slide sizes in EMUs
+export const SLIDE_SIZES = {
+  '16:9': { cx: 12192000, cy: 6858000 },      // 12.8" x 7.2" (widescreen)
+  '4:3': { cx: 9144000, cy: 6858000 },        // 10" x 7.5"
+  'A4-landscape': { cx: 10691813, cy: 7559675 }, // A4 297mm x 210mm
+};
+

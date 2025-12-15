@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone:*)",
+      "Bash(mv:*)",
+      "Bash(rmdir:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm search:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
