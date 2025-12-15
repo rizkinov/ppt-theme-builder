@@ -138,6 +138,7 @@ export default function ThemePage() {
             </div>
           </CBRECardContent>
         </CBRECard>
+
       </div>
     </div>
   );

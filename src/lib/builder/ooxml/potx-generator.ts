@@ -57,19 +57,15 @@ export async function generatePOTX(config: POTXConfig): Promise<Blob> {
     const emuPerPixelX = slideSize.cx / pixelWidth;
     const emuPerPixelY = slideSize.cy / pixelHeight;
     
-    // Center positions in EMUs
-    const centerX = slideSize.cx / 2;
-    const centerY = slideSize.cy / 2;
+    // Guide positions in OOXML are relative to top-left corner
+    // Unit is 1/8 point (1587.5 EMUs)
     
     if (g.orientation === 'vertical') {
       const positionInEMU = g.position * emuPerPixelX;
-      const offsetFromCenter = positionInEMU - centerX;
-      // Divide by 1270 to get 10x larger values (tenths of a point)
-      return { orient: 'vert', pos: Math.round(offsetFromCenter / 1270) };
+      return { orient: 'vert', pos: Math.round(positionInEMU / 1587.5) };
     } else {
       const positionInEMU = g.position * emuPerPixelY;
-      const offsetFromCenter = positionInEMU - centerY;
-      return { orient: 'horz', pos: Math.round(offsetFromCenter / 1270) };
+      return { orient: 'horz', pos: Math.round(positionInEMU / 1587.5) };
     }
   });
   

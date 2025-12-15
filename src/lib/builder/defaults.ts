@@ -4,7 +4,7 @@
  */
 
 import { ThemeColors, TypographyStyles, LayoutTemplate, SlideDimensions, SlideSize, TemplateConfig } from './types';
-import cbreTheme from '../../../config/cbre-theme.ts';
+import cbreTheme from '../../../config/cbre-theme';
 
 // Default CBRE theme colors mapped to PowerPoint's 12-color scheme
 export const defaultThemeColors: ThemeColors = {
@@ -104,6 +104,9 @@ export const slideDimensions: Record<SlideSize, SlideDimensions> = {
 };
 
 // Predefined layout templates
+// Aligned to CBRE Standard Grid (1920x1080)
+// Horizontal: Start Col 2 (81px), Mid Gutter (952-969px), End Col 23 (1840px)
+// Vertical: Header (0-70px), Content Start (91px), Content End (989px)
 export const defaultLayoutTemplates: LayoutTemplate[] = [
   {
     id: 'title-slide',
@@ -113,17 +116,17 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: 200,
+        x: 81,
         y: 350,
-        width: 1520,
+        width: 1758,
         height: 200,
       },
       {
         id: 'subtitle',
         type: 'subtitle',
-        x: 200,
+        x: 81,
         y: 600,
-        width: 1520,
+        width: 1758,
         height: 120,
       },
     ],
@@ -136,18 +139,18 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: 120,
-        y: 80,
-        width: 1680,
-        height: 120,
+        x: 81,
+        y: 96,
+        width: 1758,
+        height: 72,
       },
       {
         id: 'content',
         type: 'body',
-        x: 120,
-        y: 240,
-        width: 1680,
-        height: 720,
+        x: 81,
+        y: 192,
+        width: 1758,
+        height: 792,
       },
     ],
   },
@@ -159,26 +162,26 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: 120,
-        y: 80,
-        width: 1680,
-        height: 100,
+        x: 81,
+        y: 96,
+        width: 1758,
+        height: 72,
       },
       {
         id: 'content-left',
         type: 'body',
-        x: 120,
-        y: 220,
-        width: 800,
-        height: 740,
+        x: 81,
+        y: 192,
+        width: 870,
+        height: 792,
       },
       {
         id: 'content-right',
         type: 'body',
-        x: 1000,
-        y: 220,
-        width: 800,
-        height: 740,
+        x: 969,
+        y: 192,
+        width: 870,
+        height: 792,
       },
     ],
   },
@@ -190,42 +193,42 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: 120,
-        y: 80,
-        width: 1680,
-        height: 100,
+        x: 81,
+        y: 96,
+        width: 1758,
+        height: 72,
       },
       {
         id: 'left-heading',
         type: 'subtitle',
-        x: 120,
-        y: 220,
-        width: 800,
-        height: 80,
+        x: 81,
+        y: 192,
+        width: 870,
+        height: 72, // Matches 1 Row height (24px grid)
       },
       {
         id: 'left-content',
         type: 'body',
-        x: 120,
-        y: 320,
-        width: 800,
-        height: 640,
+        x: 81,
+        y: 288,
+        width: 870,
+        height: 696,
       },
       {
         id: 'right-heading',
         type: 'subtitle',
-        x: 1000,
-        y: 220,
-        width: 800,
-        height: 80,
+        x: 969,
+        y: 192,
+        width: 870,
+        height: 72,
       },
       {
         id: 'right-content',
         type: 'body',
-        x: 1000,
-        y: 320,
-        width: 800,
-        height: 640,
+        x: 969,
+        y: 288,
+        width: 870,
+        height: 696,
       },
     ],
   },
@@ -237,9 +240,9 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'section-title',
         type: 'title',
-        x: 200,
+        x: 81,
         y: 400,
-        width: 1520,
+        width: 1758,
         height: 280,
       },
     ],
@@ -273,9 +276,20 @@ export const defaultTemplateConfig: TemplateConfig = {
   slideSize: '16:9',
   slideDimensions: slideDimensions['16:9'],
   guides: [
-    // Default guides for 16:9 (center lines)
-    { id: 'v-center', orientation: 'vertical', position: 960 },
-    { id: 'h-center', orientation: 'horizontal', position: 540 },
+    // CBRE Structural Grid (16:9)
+    // Margins: 81px | Gutter: 18px | Cols: 56px
+    // Center Gutter: 951px - 969px
+    { id: 'margin-left', orientation: 'vertical', position: 81 },
+    { id: 'margin-right', orientation: 'vertical', position: 1839 },
+    { id: 'gutter-left', orientation: 'vertical', position: 951 },
+    { id: 'gutter-right', orientation: 'vertical', position: 969 },
+    { id: 'center-v', orientation: 'vertical', position: 960 },
+
+    // Horizontal Zones
+    { id: 'header-bottom', orientation: 'horizontal', position: 70 },
+    { id: 'content-top', orientation: 'horizontal', position: 91 },
+    { id: 'content-bottom', orientation: 'horizontal', position: 989 },
+    { id: 'center-h', orientation: 'horizontal', position: 540 },
   ],
   selectedLayouts: ['title-slide', 'title-content', 'two-content', 'blank'],
 };

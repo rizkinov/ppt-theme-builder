@@ -13,7 +13,7 @@ const cbreTheme = {
     "dark-grey": "#435254",
     "light-grey": "#CAD1D3",
     "lighter-grey": "#E6E8E9",
-    
+
     // Secondary Colors
     "midnight": "#032842",
     "midnight-tint": "#778F9C",
@@ -26,7 +26,7 @@ const cbreTheme = {
     "cement": "#7F8480",
     "cement-tint": "#CBCDCB",
   },
-  
+
   // Typography settings
   typography: {
     fonts: {
@@ -34,7 +34,7 @@ const cbreTheme = {
       calibre: 'var(--font-calibre)'
     },
   },
-  
+
   // Mapping to shadcn/ui theme variables
   shadcnMapping: {
     border: "light-grey",
@@ -67,7 +67,7 @@ const cbreTheme = {
       foreground: "dark-grey",
     },
   },
-  
+
   // Border radius settings (CBRE uses no rounded corners)
   borderRadius: {
     lg: "0",
@@ -81,5 +81,5 @@ const cbreTheme = {
   }
 };
 
-module.exports = cbreTheme;
+
 export default cbreTheme; 

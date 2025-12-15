@@ -112,12 +112,6 @@ export function ColorPicker({
           )}
         </div>
 
-        {/* Color preview swatch */}
-        <div
-          className="w-16 h-16 border-2 border-light-grey flex-shrink-0"
-          style={{ backgroundColor: value }}
-          title={value}
-        />
       </div>
     </div>
   );

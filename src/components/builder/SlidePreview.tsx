@@ -20,8 +20,18 @@ export function SlidePreview({
 }: SlidePreviewProps) {
   const { config } = useBuilderStore();
 
-  const width = config.slideDimensions.width * scale;
-  const height = config.slideDimensions.height * scale;
+  // Normalize dimensions to pixels for display
+  // 1mm = 3.7795px at 96 DPI
+  const pixelsPerUnit = config.slideDimensions.unit === 'mm' ? 3.7795 : 1;
+  const slideWidthPx = config.slideDimensions.width * pixelsPerUnit;
+  const slideHeightPx = config.slideDimensions.height * pixelsPerUnit;
+
+  // Calculate layout scaling factors (mapping 1920x1080 templates to current size)
+  const layoutScaleX = slideWidthPx / 1920;
+  const layoutScaleY = slideHeightPx / 1080;
+
+  const width = slideWidthPx * scale;
+  const height = slideHeightPx * scale;
 
   const getSampleText = (type: string, styleName: keyof typeof config.typography) => {
     const style = config.typography[styleName];
@@ -53,9 +63,13 @@ export function SlidePreview({
     }
 
     const style = config.typography[styleName];
+    // Scale font size based on layout scaling to maintain relative proportion
+    // Using the average of X and Y scaling to keep it somewhat consistent
+    const layoutFontScale = (layoutScaleX + layoutScaleY) / 2;
+
     return {
       fontFamily: style.fontFamily === 'heading' ? 'var(--font-financier-display)' : 'var(--font-calibre)',
-      fontSize: `${style.fontSize * scale}pt`,
+      fontSize: `${style.fontSize * scale * layoutFontScale}pt`,
       fontWeight: style.fontWeight,
       lineHeight: style.lineHeight,
       letterSpacing: `${style.letterSpacing}em`,
@@ -85,10 +99,10 @@ export function SlidePreview({
               placeholder.type === 'body' && "overflow-auto"
             )}
             style={{
-              left: `${placeholder.x * scale}px`,
-              top: `${placeholder.y * scale}px`,
-              width: `${placeholder.width * scale}px`,
-              height: `${placeholder.height * scale}px`,
+              left: `${placeholder.x * layoutScaleX * scale}px`,
+              top: `${placeholder.y * layoutScaleY * scale}px`,
+              width: `${placeholder.width * layoutScaleX * scale}px`,
+              height: `${placeholder.height * layoutScaleY * scale}px`,
             }}
           >
             <p

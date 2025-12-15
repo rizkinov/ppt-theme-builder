@@ -6,7 +6,7 @@
 import { xmlDeclaration, NAMESPACES, escapeXml } from './xml-utils';
 import { OOXMLSlideSize } from './types';
 
-export type LayoutType = 
+export type LayoutType =
   | 'title-slide'
   | 'title-content'
   | 'section-header'
@@ -61,15 +61,18 @@ export function generateSlideLayoutXml(
 }
 
 function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfig): string {
-  const titleX = Math.round(slideSize.cx * 0.1);
-  const titleY = Math.round(slideSize.cy * 0.32);
-  const titleCx = Math.round(slideSize.cx * 0.8);
-  const titleCy = Math.round(slideSize.cy * 0.19);
+  const x = slideSize.cx / 1920;
+  const y = slideSize.cy / 1080;
 
-  const subtitleX = Math.round(slideSize.cx * 0.1);
-  const subtitleY = Math.round(slideSize.cy * 0.55);
-  const subtitleCx = Math.round(slideSize.cx * 0.8);
-  const subtitleCy = Math.round(slideSize.cy * 0.13);
+  const titleX = Math.round(81 * x);
+  const titleY = Math.round(350 * y);
+  const titleCx = Math.round(1758 * x);
+  const titleCy = Math.round(200 * y);
+
+  const subtitleX = Math.round(81 * x);
+  const subtitleY = Math.round(600 * y);
+  const subtitleCx = Math.round(1758 * x);
+  const subtitleCy = Math.round(120 * y);
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">
@@ -161,15 +164,18 @@ function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
 }
 
 function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfig): string {
-  const titleX = Math.round(slideSize.cx * 0.0625);
-  const titleY = Math.round(slideSize.cy * 0.074);
-  const titleCx = Math.round(slideSize.cx * 0.875);
-  const titleCy = Math.round(slideSize.cy * 0.13);
+  const x = slideSize.cx / 1920;
+  const y = slideSize.cy / 1080;
 
-  const contentX = Math.round(slideSize.cx * 0.0625);
-  const contentY = Math.round(slideSize.cy * 0.222);
-  const contentCx = Math.round(slideSize.cx * 0.875);
-  const contentCy = Math.round(slideSize.cy * 0.667);
+  const titleX = Math.round(81 * x);
+  const titleY = Math.round(96 * y);
+  const titleCx = Math.round(1758 * x);
+  const titleCy = Math.round(72 * y);
+
+  const contentX = Math.round(81 * x);
+  const contentY = Math.round(192 * y);
+  const contentCx = Math.round(1758 * x);
+  const contentCy = Math.round(792 * y);
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">
@@ -272,10 +278,13 @@ function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
 }
 
 function generateSectionHeaderLayout(slideSize: OOXMLSlideSize, config: LayoutConfig): string {
-  const titleX = Math.round(slideSize.cx * 0.1);
-  const titleY = Math.round(slideSize.cy * 0.37);
-  const titleCx = Math.round(slideSize.cx * 0.8);
-  const titleCy = Math.round(slideSize.cy * 0.26);
+  const x = slideSize.cx / 1920;
+  const y = slideSize.cy / 1080;
+
+  const titleX = Math.round(81 * x);
+  const titleY = Math.round(400 * y);
+  const titleCx = Math.round(1758 * x);
+  const titleCy = Math.round(280 * y);
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">
@@ -334,17 +343,20 @@ function generateSectionHeaderLayout(slideSize: OOXMLSlideSize, config: LayoutCo
 }
 
 function generateTwoContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfig): string {
-  const titleX = Math.round(slideSize.cx * 0.0625);
-  const titleY = Math.round(slideSize.cy * 0.074);
-  const titleCx = Math.round(slideSize.cx * 0.875);
-  const titleCy = Math.round(slideSize.cy * 0.13);
+  const x = slideSize.cx / 1920;
+  const y = slideSize.cy / 1080;
 
-  const leftX = Math.round(slideSize.cx * 0.0625);
-  const contentY = Math.round(slideSize.cy * 0.222);
-  const contentCx = Math.round(slideSize.cx * 0.422);
-  const contentCy = Math.round(slideSize.cy * 0.667);
+  const titleX = Math.round(81 * x);
+  const titleY = Math.round(96 * y);
+  const titleCx = Math.round(1758 * x);
+  const titleCy = Math.round(72 * y);
 
-  const rightX = Math.round(slideSize.cx * 0.516);
+  const leftX = Math.round(81 * x);
+  const contentY = Math.round(192 * y);
+  const contentCx = Math.round(870 * x);
+  const contentCy = Math.round(792 * y);
+
+  const rightX = Math.round(969 * x);
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">
@@ -491,19 +503,22 @@ function generateTwoContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
 }
 
 function generateComparisonLayout(slideSize: OOXMLSlideSize, config: LayoutConfig): string {
-  const titleX = Math.round(slideSize.cx * 0.0625);
-  const titleY = Math.round(slideSize.cy * 0.074);
-  const titleCx = Math.round(slideSize.cx * 0.875);
-  const titleCy = Math.round(slideSize.cy * 0.13);
+  const x = slideSize.cx / 1920;
+  const y = slideSize.cy / 1080;
 
-  const leftX = Math.round(slideSize.cx * 0.0625);
-  const rightX = Math.round(slideSize.cx * 0.516);
-  const headerY = Math.round(slideSize.cy * 0.222);
-  const headerCx = Math.round(slideSize.cx * 0.422);
-  const headerCy = Math.round(slideSize.cy * 0.093);
+  const titleX = Math.round(81 * x);
+  const titleY = Math.round(96 * y);
+  const titleCx = Math.round(1758 * x);
+  const titleCy = Math.round(72 * y);
 
-  const contentY = Math.round(slideSize.cy * 0.333);
-  const contentCy = Math.round(slideSize.cy * 0.556);
+  const leftX = Math.round(81 * x);
+  const rightX = Math.round(969 * x);
+  const headerY = Math.round(192 * y);
+  const headerCx = Math.round(870 * x);
+  const headerCy = Math.round(72 * y);
+
+  const contentY = Math.round(288 * y);
+  const contentCy = Math.round(696 * y);
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">

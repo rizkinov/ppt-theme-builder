@@ -17,9 +17,19 @@ export default function LayoutsPage() {
     const layout = defaultLayoutTemplates.find((l) => l.id === layoutId);
     if (!layout) return null;
 
-    const scale = 0.15; // Scale down for preview (1920px -> ~288px)
-    const width = config.slideDimensions.width * scale;
-    const height = config.slideDimensions.height * scale;
+    const scale = 0.15;
+
+    // Normalize to pixels (1mm ≈ 3.7795px at 96 DPI)
+    const pixelsPerUnit = config.slideDimensions.unit === 'mm' ? 3.7795 : 1;
+    const slideWidthPx = config.slideDimensions.width * pixelsPerUnit;
+    const slideHeightPx = config.slideDimensions.height * pixelsPerUnit;
+
+    const width = slideWidthPx * scale;
+    const height = slideHeightPx * scale;
+
+    // Scale layout from 1920x1080 reference to current dimensions
+    const layoutScaleX = slideWidthPx / 1920;
+    const layoutScaleY = slideHeightPx / 1080;
 
     return (
       <div
@@ -36,10 +46,10 @@ export default function LayoutsPage() {
               placeholder.type === 'body' && "border-dark-grey bg-dark-grey/5"
             )}
             style={{
-              left: `${placeholder.x * scale}px`,
-              top: `${placeholder.y * scale}px`,
-              width: `${placeholder.width * scale}px`,
-              height: `${placeholder.height * scale}px`,
+              left: `${placeholder.x * layoutScaleX * scale}px`,
+              top: `${placeholder.y * layoutScaleY * scale}px`,
+              width: `${placeholder.width * layoutScaleX * scale}px`,
+              height: `${placeholder.height * layoutScaleY * scale}px`,
             }}
           >
             <div className="flex items-center justify-center h-full">
