@@ -12,6 +12,7 @@ export function generatePresentationXml(
   <p:sldMasterIdLst>
     <p:sldMasterId id="2147483648" r:id="rId1"/>
   </p:sldMasterIdLst>
+  <p:sldIdLst/>
   <p:sldSz cx="${slideSize.cx}" cy="${slideSize.cy}"/>
   <p:notesSz cx="${slideSize.cy}" cy="${slideSize.cx}"/>
   <p:defaultTextStyle>

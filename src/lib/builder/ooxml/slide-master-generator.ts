@@ -28,21 +28,18 @@ export function generateSlideMasterXml(
     // If it's a specific weight variant that isn't standard Regular/Bold, prefer the explicit name
     // This fixes issues where "Calibre Light" or "Calibre Medium" map to generic "Calibre" (+mn-lt)
     // and thus lose their specific weight appearance in PPT.
-    const isSpecialVariant = asset.name.match(/(Light|Medium|Thin|Black|Semibold|ExtraBold)/i);
+    const isSpecialVariant = asset?.name?.match(/(Light|Medium|Thin|Black|Semibold|ExtraBold)/i);
 
-    if (isSpecialVariant) {
+    if (isSpecialVariant && asset?.name) {
       // Use the explicit font name (e.g. "Calibre Light")
-      // NOTE: This assumes the font is installed/embedded with this name as the typeface.
-      // For standard Windows/Office use, usually the Family Name is used, but for specific
-      // weights that are separate font files acting as faces, we use the specific name.
       return { lt: asset.name, ea: asset.name, cs: asset.name };
     }
 
-    if (asset.family === fonts.majorFont) return { lt: '+mj-lt', ea: '+mj-ea', cs: '+mj-cs' };
-    if (asset.family === fonts.minorFont) return { lt: '+mn-lt', ea: '+mn-ea', cs: '+mn-cs' };
+    if (asset?.family === fonts.majorFont) return { lt: '+mj-lt', ea: '+mj-ea', cs: '+mj-cs' };
+    if (asset?.family === fonts.minorFont) return { lt: '+mn-lt', ea: '+mn-ea', cs: '+mn-cs' };
 
     // Custom font
-    return { lt: asset.family, ea: asset.family, cs: asset.family };
+    return asset ? { lt: asset.family, ea: asset.family, cs: asset.family } : { lt: '+mn-lt', ea: '+mn-ea', cs: '+mn-cs' };
   };
 
   // Helper to resolve weight
@@ -51,7 +48,7 @@ export function generateSlideMasterXml(
 
     // If it's a special variant (like Medium), we do NOT want to mimic bold.
     // We want to use the font file itself which provides the weight.
-    const isSpecialVariant = asset?.name.match(/(Light|Medium|Thin|Black|Semibold|ExtraBold)/i);
+    const isSpecialVariant = asset?.name?.match(/(Light|Medium|Thin|Black|Semibold|ExtraBold)/i);
     if (isSpecialVariant) return '0';
 
     // Otherwise, for standard fonts or generic families, use bold for >= 600
@@ -419,15 +416,14 @@ function generateTextStyles(typography: TypographyConfig, fontLibrary: FontAsset
       </a:lvl1pPr>
     </p:titleStyle>
     <p:bodyStyle>
-      <a:lvl1pPr marL="342900" indent="-342900" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:lvl1pPr marL="0" indent="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
         <a:lnSpc>
           <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
         </a:lnSpc>
         <a:spcBef>
           <a:spcPct val="20000"/>
         </a:spcBef>
-        <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
-        <a:buChar char="•"/>
+        <a:buNone/>
         <a:defRPr sz="${Math.round(bodySize)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize, typography.bodyLarge.letterSpacing)}" b="${getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>

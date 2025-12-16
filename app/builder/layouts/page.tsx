@@ -150,12 +150,7 @@ export default function LayoutsPage() {
                         : "border-light-grey bg-white hover:border-cbre-green hover:shadow-md"
                     )}
                   >
-                    {/* Selected indicator badge */}
-                    {isSelected && (
-                      <div className="absolute -top-2 -right-2 bg-cbre-green text-white px-2 py-0.5 text-xs font-calibre font-medium shadow-md">
-                        Selected
-                      </div>
-                    )}
+
 
                     {/* Preview */}
                     <div className="mb-3 flex justify-center">

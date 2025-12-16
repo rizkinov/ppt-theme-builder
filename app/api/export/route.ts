@@ -21,6 +21,46 @@ export async function POST(request: NextRequest) {
     const potxConfig = convertToPOTXConfig(config);
     console.log('📝 Generating POTX with theme:', potxConfig.name);
 
+    // Pre-process font library to ensure all fonts (local or remote) have valid Blob data for embedding
+    // This allows generatePOTX to embed them regardless of whether they are local defaults or remote uploads
+    if (potxConfig.fontLibrary) {
+      const fs = await import('fs');
+      const path = await import('path');
+
+      for (const font of potxConfig.fontLibrary) {
+        // If we don't have a file blob (because we came from JSON), we need to fetch/read it
+        if (!font.file && font.url) {
+          try {
+            let buffer: Buffer | ArrayBuffer | null = null;
+
+            if (font.url.startsWith('/')) {
+              // Local file
+              const filePath = path.join(process.cwd(), 'public', font.url);
+              if (fs.existsSync(filePath)) {
+                buffer = fs.readFileSync(filePath);
+              }
+            } else {
+              // Remote file
+              const response = await fetch(font.url);
+              if (response.ok) {
+                buffer = await response.arrayBuffer();
+              }
+            }
+
+            if (buffer) {
+              // Create a Blob from the buffer properly
+              // @ts-ignore - Node.js global Blob might need ignore or polyfill check, but usually available in Next.js environment
+              font.file = new Blob([buffer], { type: 'font/ttf' });
+              // Ensure source is marked as upload so generatePOTX embeds it
+              font.source = 'upload';
+            }
+          } catch (e) {
+            console.error('Failed to pre-load font for embedding:', font.name, e);
+          }
+        }
+      }
+    }
+
     // Generate proper .potx file using Office Open XML
     const potxBlob = await generatePOTX(potxConfig);
     const potxBuffer = await potxBlob.arrayBuffer();
@@ -48,15 +88,33 @@ export async function POST(request: NextRequest) {
       for (const font of config.fontLibrary) {
         if (font.url) {
           try {
-            const response = await fetch(font.url);
-            if (response.ok) {
-              const buffer = await response.arrayBuffer();
+            let buffer: Buffer | ArrayBuffer | null = null;
+
+            if (font.url.startsWith('/')) {
+              // Local font in public folder - read directly from filesystem
+              const fs = await import('fs');
+              const path = await import('path');
+              const filePath = path.join(process.cwd(), 'public', font.url);
+              if (fs.existsSync(filePath)) {
+                buffer = fs.readFileSync(filePath);
+              } else {
+                console.warn(`Local font file not found: ${filePath}`);
+              }
+            } else {
+              // Remote font (Supabase)
+              const response = await fetch(font.url);
+              if (response.ok) {
+                buffer = await response.arrayBuffer();
+              }
+            }
+
+            if (buffer) {
               // Use original filename if possible, else construct one
               const filename = font.url.split('/').pop() || `${font.family}-${font.weight || 'Regular'}.ttf`;
               fontsFolder.file(decodeURIComponent(filename), buffer);
             }
           } catch (e) {
-            console.error('Failed to fetch font for zip:', font.name);
+            console.error('Failed to fetch font for zip:', font.name, e);
           }
         }
       }
