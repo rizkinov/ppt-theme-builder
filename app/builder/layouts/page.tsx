@@ -144,10 +144,19 @@ export default function LayoutsPage() {
                     key={layout.id}
                     onClick={() => toggleLayout(layout.id)}
                     className={cn(
-                      "p-4 border-2 transition-all text-left hover:border-cbre-green group",
-                      isSelected ? "border-cbre-green bg-lighter-grey" : "border-light-grey bg-white"
+                      "p-4 border-2 transition-all text-left group relative",
+                      isSelected
+                        ? "border-cbre-green bg-accent-green/20 shadow-lg shadow-cbre-green/20 ring-2 ring-cbre-green ring-offset-2"
+                        : "border-light-grey bg-white hover:border-cbre-green hover:shadow-md"
                     )}
                   >
+                    {/* Selected indicator badge */}
+                    {isSelected && (
+                      <div className="absolute -top-2 -right-2 bg-cbre-green text-white px-2 py-0.5 text-xs font-calibre font-medium shadow-md">
+                        Selected
+                      </div>
+                    )}
+
                     {/* Preview */}
                     <div className="mb-3 flex justify-center">
                       {renderLayoutPreview(layout.id)}

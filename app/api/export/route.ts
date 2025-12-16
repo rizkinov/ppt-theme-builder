@@ -6,12 +6,6 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const configJson = formData.get('config') as string;
-    const headingFontFile = formData.get('headingFont') as File | null;
-    const bodyFontFile = formData.get('bodyFont') as File | null;
-
-    console.log('📦 Export API called');
-    console.log('Heading font:', headingFontFile ? `${headingFontFile.name} (${headingFontFile.size} bytes)` : 'None');
-    console.log('Body font:', bodyFontFile ? `${bodyFontFile.name} (${bodyFontFile.size} bytes)` : 'None');
 
     if (!configJson) {
       return NextResponse.json(
@@ -21,6 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const config = JSON.parse(configJson);
+    console.log('📦 Export API called for:', config.name);
 
     // Convert app config to POTX config format
     const potxConfig = convertToPOTXConfig(config);
@@ -37,16 +32,33 @@ export async function POST(request: NextRequest) {
     // Add .potx file (the proper PowerPoint template)
     zip.file(`${templateName}.potx`, potxBuffer);
 
-    // Add fonts folder
+    // Add fonts folder (populated by generatePOTX fetching from fontLibrary URLs)
+    // Note: potxBlob already contains the embedded fonts in ppt/fonts/ if available
+    // We only need to add them to the root fonts/ folder if we want to provide installers for the user
+    // For now, let's skip duplicating them to root unless explicitly requested feature
+    // But generatePOTX puts them inside the .potx. 
+    // If the user wants separate font files, we'd need to fetch them here too. 
+
+    // Let's rely on the .potx having them embedded.
+    // If we want to provide a separate "installers" folder, we can fetch from config.fontLibrary urls.
+
     const fontsFolder = zip.folder('fonts');
-    if (fontsFolder) {
-      if (headingFontFile) {
-        const headingFontBuffer = await headingFontFile.arrayBuffer();
-        fontsFolder.file(headingFontFile.name, headingFontBuffer);
-      }
-      if (bodyFontFile) {
-        const bodyFontBuffer = await bodyFontFile.arrayBuffer();
-        fontsFolder.file(bodyFontFile.name, bodyFontBuffer);
+    if (fontsFolder && config.fontLibrary) {
+      // Fetch and add fonts to the root 'fonts' folder for user installation
+      for (const font of config.fontLibrary) {
+        if (font.url) {
+          try {
+            const response = await fetch(font.url);
+            if (response.ok) {
+              const buffer = await response.arrayBuffer();
+              // Use original filename if possible, else construct one
+              const filename = font.url.split('/').pop() || `${font.family}-${font.weight || 'Regular'}.ttf`;
+              fontsFolder.file(decodeURIComponent(filename), buffer);
+            }
+          } catch (e) {
+            console.error('Failed to fetch font for zip:', font.name);
+          }
+        }
       }
     }
 
@@ -70,14 +82,7 @@ export async function POST(request: NextRequest) {
         followedHyperlink: config.theme.colors.followedHyperlink,
       },
       fonts: {
-        headings: {
-          family: config.fonts.heading.family,
-          files: headingFontFile ? [`fonts/${headingFontFile.name}`] : [],
-        },
-        body: {
-          family: config.fonts.body.family,
-          files: bodyFontFile ? [`fonts/${bodyFontFile.name}`] : [],
-        },
+        library: config.fontLibrary || [],
       },
       layouts: [
         'Title Slide',
@@ -107,12 +112,11 @@ and theme colors that will appear in PowerPoint's Design tab.
 
 STEP 1: INSTALL FONTS (if included)
 -----------------------------------
-${headingFontFile || bodyFontFile ? `
+${config.fontLibrary?.length > 0 ? `
 You MUST install the custom fonts BEFORE opening the template.
 
 Included Fonts:
-${headingFontFile ? `  • ${config.fonts.heading.family} (Heading font): fonts/${headingFontFile.name}` : ''}
-${bodyFontFile ? `  • ${config.fonts.body.family} (Body font): fonts/${bodyFontFile.name}` : ''}
+${config.fontLibrary.map((f: any) => `  • ${f.name}: fonts/${f.family}-${f.weight}.ttf (approx)`).join('\n')}
 
 Windows Installation:
 1. Open the fonts/ folder
@@ -154,8 +158,8 @@ WHAT'S INCLUDED IN THIS TEMPLATE
   - Hyperlink, Followed Hyperlink
   
 ✓ Font Scheme:
-  - Heading Font: ${config.fonts.heading.family}
-  - Body Font: ${config.fonts.body.family}
+  - Heading Font: ${config.typography.heading.fontId}
+  - Body Font: ${config.typography.bodyLarge.fontId}
   
 ✓ Master Slides with 6 Layouts:
   1. Title Slide - Centered title with subtitle

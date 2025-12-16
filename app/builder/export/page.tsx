@@ -27,8 +27,8 @@ export default function ExportPage() {
       errors.push('At least one layout must be selected');
     }
 
-    if (!config.fonts.heading.family || !config.fonts.body.family) {
-      errors.push('Both heading and body fonts must be defined');
+    if (!config.fontLibrary || config.fontLibrary.length === 0) {
+      errors.push('Font library is empty');
     }
 
     return errors;
@@ -52,12 +52,9 @@ export default function ExportPage() {
       formData.append('config', JSON.stringify(config));
 
       // Add font files if they exist
-      if (config.fonts.heading.file) {
-        formData.append('headingFont', config.fonts.heading.file);
-      }
-      if (config.fonts.body.file) {
-        formData.append('bodyFont', config.fonts.body.file);
-      }
+      // NOTE: Font files are now handled via URLs in config.fontLibrary or uploaded to Storage.
+      // We don't need to append 'headingFont' or 'bodyFont' blobs here manually anymore,
+      // as the backend/export API should fetch them from the URLs provided in config.fontLibrary.
 
       setExportProgress('Generating PowerPoint template...');
 
@@ -100,12 +97,12 @@ export default function ExportPage() {
     // Create a clean config without File objects
     const cleanConfig = {
       ...config,
-      fonts: {
-        heading: { family: config.fonts.heading.family, file: null },
-        body: { family: config.fonts.body.family, file: null },
-      },
+      fontLibrary: config.fontLibrary.map(f => ({
+        ...f,
+        file: null // Remove File object for serialization
+      })),
     };
-    
+
     const blob = new Blob([JSON.stringify(cleanConfig, null, 2)], { type: 'application/json' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -127,8 +124,8 @@ export default function ExportPage() {
       try {
         const loadedConfig = JSON.parse(event.target?.result as string);
         // Ensure fonts.file is null (File objects can't be serialized)
-        loadedConfig.fonts.heading.file = null;
-        loadedConfig.fonts.body.file = null;
+        // Ensure file objects are null
+        loadedConfig.fontLibrary = loadedConfig.fontLibrary.map((f: any) => ({ ...f, file: null }));
         loadConfig(loadedConfig);
         toast.success('Configuration loaded successfully!');
       } catch {
@@ -136,7 +133,7 @@ export default function ExportPage() {
       }
     };
     reader.readAsText(file);
-    
+
     // Reset input
     if (configFileInputRef.current) {
       configFileInputRef.current.value = '';
@@ -241,7 +238,7 @@ export default function ExportPage() {
 
               {/* Fonts */}
               <div className="flex items-start gap-3">
-                {config.fonts.heading.family && config.fonts.body.family ? (
+                {(config.fontLibrary && config.fontLibrary.length > 0) ? (
                   <CheckCircle className="h-5 w-5 text-cbre-green flex-shrink-0 mt-0.5" />
                 ) : (
                   <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
@@ -249,12 +246,7 @@ export default function ExportPage() {
                 <div className="flex-1">
                   <p className="font-calibre font-medium text-dark-grey">Fonts</p>
                   <p className="text-sm text-dark-grey font-calibre opacity-75">
-                    Heading: {config.fonts.heading.family || 'Not set'}
-                    {config.fonts.heading.file && ' ✓'}
-                  </p>
-                  <p className="text-sm text-dark-grey font-calibre opacity-75">
-                    Body: {config.fonts.body.family || 'Not set'}
-                    {config.fonts.body.file && ' ✓'}
+                    {config.fontLibrary?.length || 0} fonts available
                   </p>
                 </div>
               </div>
@@ -349,7 +341,7 @@ export default function ExportPage() {
                     <p className="font-calibre font-medium text-dark-grey">Package Contents:</p>
                     <ul className="text-sm text-dark-grey font-calibre opacity-75 mt-2 space-y-1 list-disc list-inside">
                       <li>{config.name}.potx - PowerPoint Template with proper master slides</li>
-                      <li>fonts/ - Custom font files {(config.fonts.heading.file || config.fonts.body.file) ? '(included)' : '(if uploaded)'}</li>
+                      <li>fonts/ - Custom font files (if uploaded)</li>
                       <li>manifest.json - Template metadata and theme colors</li>
                       <li>README.txt - Installation and usage instructions</li>
                     </ul>
@@ -357,7 +349,7 @@ export default function ExportPage() {
                 </div>
                 <div className="border-t border-light-grey pt-3">
                   <p className="text-xs text-dark-grey font-calibre">
-                    <strong>✓ True Template:</strong> This exports a proper .potx file with master slides, theme colors, 
+                    <strong>✓ True Template:</strong> This exports a proper .potx file with master slides, theme colors,
                     and font schemes that appear in PowerPoint's Design tab. No manual conversion needed!
                   </p>
                 </div>

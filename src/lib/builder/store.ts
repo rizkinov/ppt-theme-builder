@@ -4,8 +4,8 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { TemplateConfig, ThemeColors, TextStyle, Guide, FontConfig } from './types';
-import { defaultTemplateConfig, slideDimensions } from './defaults';
+import { TemplateConfig, ThemeColors, TextStyle, Guide, FontAsset } from './types';
+import { defaultTemplateConfig, slideDimensions, defaultFontLibrary } from './defaults';
 
 interface BuilderState {
   config: TemplateConfig;
@@ -14,7 +14,8 @@ interface BuilderState {
   updateThemeColor: (colorKey: keyof ThemeColors, value: string) => void;
 
   // Actions for fonts
-  updateFont: (fontType: 'heading' | 'body', fontConfig: Partial<FontConfig>) => void;
+  addFont: (font: FontAsset) => void;
+  removeFont: (fontId: string) => void;
 
   // Actions for typography
   updateTextStyle: (styleKey: keyof TemplateConfig['typography'], updates: Partial<TextStyle>) => void;
@@ -64,17 +65,19 @@ export const useBuilderStore = create<BuilderState>()(
             },
           })),
 
-        updateFont: (fontType, fontConfig) =>
+        addFont: (font) =>
           set((state) => ({
             config: {
               ...state.config,
-              fonts: {
-                ...state.config.fonts,
-                [fontType]: {
-                  ...state.config.fonts[fontType],
-                  ...fontConfig,
-                },
-              },
+              fontLibrary: [...state.config.fontLibrary, font],
+            },
+          })),
+
+        removeFont: (fontId) =>
+          set((state) => ({
+            config: {
+              ...state.config,
+              fontLibrary: state.config.fontLibrary.filter((f) => f.id !== fontId),
             },
           })),
 
@@ -179,6 +182,25 @@ export const useBuilderStore = create<BuilderState>()(
       {
         name: 'ppt-builder-storage',
         partialize: (state) => ({ config: state.config }),
+        version: 1,
+        migrate: (persistedState: any, version) => {
+          if (version === undefined || version < 1) {
+            // Migration: Ensure fontLibrary is populated
+            const state = persistedState as BuilderState;
+            const currentLibrary = state.config?.fontLibrary || [];
+
+            if (currentLibrary.length === 0) {
+              return {
+                ...state,
+                config: {
+                  ...state.config,
+                  fontLibrary: defaultFontLibrary,
+                },
+              };
+            }
+          }
+          return persistedState as BuilderState;
+        },
       }
     )
   )

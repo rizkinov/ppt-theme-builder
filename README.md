@@ -44,7 +44,7 @@ A web application for creating and customizing PowerPoint templates (.POTX) with
    - Drag to position or enter precise pixel values
    - Quick presets (center, thirds)
    - Visual canvas preview
-   - Guides visible in PowerPoint master view
+   - Guides visible in PowerPoint view
 
 5. **Live Preview** - Real-time template preview
    - HTML/CSS mockup of slides

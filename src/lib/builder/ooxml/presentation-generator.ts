@@ -6,8 +6,7 @@ import { xmlDeclaration, escapeXml, NAMESPACES } from './xml-utils';
 import { OOXMLSlideSize, OOXMLGuide } from './types';
 
 export function generatePresentationXml(
-  slideSize: OOXMLSlideSize,
-  guides: OOXMLGuide[]
+  slideSize: OOXMLSlideSize
 ): string {
   return `${xmlDeclaration()}<p:presentation xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" saveSubsetFonts="1">
   <p:sldMasterIdLst>
@@ -51,8 +50,11 @@ export function generatePresPropsXml(): string {
 </p:presentationPr>`;
 }
 
+// Generate viewProps.xml with guides
+// Note: Guides in viewProps.xml cannot be "locked" - this is a PowerPoint limitation
+// Users can move these guides, but they will be positioned correctly on export
 export function generateViewPropsXml(guides: OOXMLGuide[]): string {
-  const guideList = guides.length > 0 
+  const guideList = guides.length > 0
     ? `<p:cSldViewPr>
       <p:cViewPr>
         <p:scale>
@@ -118,7 +120,9 @@ export function generateContentTypesXml(layoutCount: number): string {
 
   return `${xmlDeclaration()}<Types xmlns="${NAMESPACES.contentTypes}">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-  <Default Extension="xml" ContentType="application/xml"/>${overrides}
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Default Extension="ttf" ContentType="application/x-font-ttf"/>
+  <Default Extension="otf" ContentType="application/x-font-opentype"/>${overrides}
 </Types>`;
 }
 

@@ -2,6 +2,18 @@
  * TypeScript type definitions for PPT Theme Builder
  */
 
+
+export interface FontAsset {
+  id: string;
+  name: string; // Display name e.g. "Calibre SemiBold"
+  family: string; // CSS family name e.g. "Calibre"
+  weight?: number; // 400, 600, etc.
+  style?: 'normal' | 'italic';
+  source: 'upload' | 'default';
+  url?: string; // for default/uploaded fonts
+  file?: File; // for uploaded fonts
+}
+
 export interface ThemeColors {
   dark1: string;
   dark2: string;
@@ -17,20 +29,16 @@ export interface ThemeColors {
   followedHyperlink: string;
 }
 
-export interface FontConfig {
-  family: string;
-  file?: File | null;
-  fileData?: string; // base64 or data URL for preview
-}
-
 export interface TextStyle {
-  fontFamily: 'heading' | 'body';
+  fontId: string; // ID of the FontAsset
   fontSize: number; // in points
-  fontWeight: 400 | 500 | 600 | 700;
   lineHeight: number; // multiplier (e.g., 1.2)
   letterSpacing: number; // in em (e.g., 0.01)
   color: string; // hex color
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  // Deprecated properties kept for migration/fallback
+  fontWeight?: 300 | 400 | 500 | 600 | 700;
+  fontFamily?: string;
 }
 
 export type SlideSize = '16:9' | 'A4-landscape';
@@ -80,10 +88,7 @@ export interface TemplateConfig {
   theme: {
     colors: ThemeColors;
   };
-  fonts: {
-    heading: FontConfig;
-    body: FontConfig;
-  };
+  fontLibrary: FontAsset[];
   typography: TypographyStyles;
   slideSize: SlideSize;
   slideDimensions: SlideDimensions;
@@ -96,16 +101,8 @@ export interface ExportManifest {
   template: string;
   slideSize: string;
   themeColors: string[];
-  fonts: {
-    headings: {
-      family: string;
-      files: string[];
-    };
-    body: {
-      family: string;
-      files: string[];
-    };
-  };
+  fonts: FontAsset[];
   hashes: Record<string, string>;
   generatedAt: string;
 }
+

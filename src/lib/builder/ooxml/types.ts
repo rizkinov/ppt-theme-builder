@@ -74,3 +74,24 @@ export const SLIDE_SIZES = {
   'A4-landscape': { cx: 10691813, cy: 7559675 }, // A4 297mm x 210mm
 };
 
+
+export interface TextStyleConfig {
+  fontId: string;  // ID of the font asset
+  fontSize: number;
+  fontSizePc?: number; // Size in percentage (for some contexts)
+  fontWeight?: number; // Explicit weight if needed (though fontId implies it)
+  color: string;
+  lineHeight: number;
+  letterSpacing: number;
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+}
+
+export interface TypographyConfig {
+  heading: TextStyleConfig;
+  subtitle: TextStyleConfig;
+  bodyLarge: TextStyleConfig;
+  bodySmall: TextStyleConfig;
+  quote: TextStyleConfig;
+  bullet: TextStyleConfig;
+  link: TextStyleConfig;
+}

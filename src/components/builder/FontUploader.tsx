@@ -1,62 +1,90 @@
+
 "use client";
 
 import React, { useRef, useState } from 'react';
 import { CBREButton } from '@/src/components/cbre/CBREButton';
-import { Input } from '@/src/components/ui/input';
 import { Label } from '@/src/components/ui/label';
-import { Upload, X, FileText } from 'lucide-react';
+import { Upload, X, FileText, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { FontAsset } from '@/src/lib/builder/types';
+import { useBuilderStore } from '@/src/lib/builder/store';
+import { supabase } from '@/src/lib/supabase';
+import { toast } from 'sonner';
 
-interface FontUploaderProps {
-  label: string;
-  description?: string;
-  fontFamily: string;
-  onFontFamilyChange: (family: string) => void;
-  fontFile: File | null | undefined;
-  onFontFileChange: (file: File | null) => void;
-  fontPreviewData?: string;
+interface FontManagerProps {
   className?: string;
 }
 
-export function FontUploader({
-  label,
-  description,
-  fontFamily,
-  onFontFamilyChange,
-  fontFile,
-  onFontFileChange,
-  fontPreviewData,
-  className,
-}: FontUploaderProps) {
+export function FontManager({ className }: FontManagerProps) {
+  const { config, addFont, removeFont } = useBuilderStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const handleFileSelect = (file: File) => {
-    if (file && (file.name.endsWith('.ttf') || file.name.endsWith('.otf') || file.name.endsWith('.TTF') || file.name.endsWith('.OTF'))) {
-      onFontFileChange(file);
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files) return;
 
-      // Read file for preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        if (dataUrl) {
-          // Create a style element to load the font for preview
-          const fontFace = new FontFace(fontFamily, `url(${dataUrl})`);
-          fontFace.load().then((loadedFace) => {
-            document.fonts.add(loadedFace);
-          }).catch((error) => {
-            console.error('Error loading font:', error);
-          });
+    for (const file of Array.from(files)) {
+      if (
+        file.name.endsWith('.ttf') ||
+        file.name.endsWith('.otf') ||
+        file.name.endsWith('.TTF') ||
+        file.name.endsWith('.OTF')
+      ) {
+        try {
+          // Simple heuristic to metadata from filename
+          const fileNameNoExt = file.name.replace(/\.(ttf|otf)$/i, '');
+          let family = fileNameNoExt.split('-')[0] || fileNameNoExt;
+          family = family.replace(/([A-Z])/g, ' $1').trim();
+          const name = fileNameNoExt.replace(/[-_]/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
+
+          let weight = 400;
+          if (name.toLowerCase().includes('bold')) weight = 700;
+          else if (name.toLowerCase().includes('semibold')) weight = 600;
+          else if (name.toLowerCase().includes('medium')) weight = 500;
+          else if (name.toLowerCase().includes('light')) weight = 300;
+
+          const style = name.toLowerCase().includes('italic') ? 'italic' : 'normal';
+          const fileId = crypto.randomUUID();
+          const filePath = `${fileId}-${file.name}`;
+
+          // Upload to Supabase Storage
+          const { data, error } = await supabase.storage
+            .from('fonts')
+            .upload(filePath, file);
+
+          if (error) {
+            console.error('Supabase upload error:', error);
+            throw error;
+          }
+
+          // Get Public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('fonts')
+            .getPublicUrl(filePath);
+
+          const newFont: FontAsset = {
+            id: fileId,
+            name: name,
+            family: family,
+            weight: weight,
+            style: style as 'normal' | 'italic',
+            source: 'upload',
+            file: file, // Keep file for immediate use, but url will persist
+            url: publicUrl,
+          };
+
+          // Load font for preview
+          const fontFace = new FontFace(name, `url(${newFont.url})`);
+          await fontFace.load();
+          document.fonts.add(fontFace);
+
+          addFont(newFont);
+          toast.success(`Uploaded ${file.name}`);
+        } catch (err) {
+          console.error('Failed to upload/load font', err);
+          toast.error(`Failed to upload ${file.name}`);
         }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
+      }
     }
   };
 
@@ -74,47 +102,24 @@ export function FontUploader({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleRemoveFile = () => {
-    onFontFileChange(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileSelect(e.dataTransfer.files);
     }
   };
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div>
-        <Label className="text-dark-grey font-calibre font-medium">{label}</Label>
-        {description && (
-          <p className="text-sm text-dark-grey font-calibre opacity-75 mt-1">
-            {description}
-          </p>
-        )}
+    <div className={cn("space-y-6", className)}>
+      <div className="space-y-1">
+        <h3 className="text-lg font-financier font-bold text-cbre-green">Font Library</h3>
+        <p className="text-sm text-dark-grey font-calibre">
+          Manage the fonts available for your template.
+        </p>
       </div>
 
-      {/* Font Family Name */}
-      <div className="space-y-2">
-        <Label className="text-sm text-dark-grey font-calibre">Font Family Name</Label>
-        <Input
-          type="text"
-          value={fontFamily}
-          onChange={(e) => onFontFamilyChange(e.target.value)}
-          placeholder="e.g., Financier Display"
-          className="font-calibre"
-        />
-      </div>
-
-      {/* File Upload Area */}
+      {/* Upload Area */}
       <div
         className={cn(
-          "border-2 border-dashed border-light-grey p-6 transition-colors",
+          "border-2 border-dashed border-light-grey p-8 transition-colors rounded-lg",
           dragActive && "border-cbre-green bg-lighter-grey",
           "hover:border-cbre-green"
         )}
@@ -123,80 +128,79 @@ export function FontUploader({
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        {!fontFile ? (
-          <div className="flex flex-col items-center gap-3">
-            <Upload className="h-8 w-8 text-dark-grey" />
-            <div className="text-center">
-              <p className="text-sm font-calibre text-dark-grey mb-2">
-                Drag and drop your font file here, or
-              </p>
-              <CBREButton
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Browse Files
-              </CBREButton>
-            </div>
-            <p className="text-xs text-dark-grey font-calibre opacity-75">
-              Supports TTF and OTF files
+        <div className="flex flex-col items-center gap-4">
+          <Upload className="h-10 w-10 text-dark-grey opacity-50" />
+          <div className="text-center space-y-2">
+            <p className="text-base font-calibre text-dark-grey font-medium">
+              Drag and drop font files here
+            </p>
+            <p className="text-xs text-dark-grey opacity-75">
+              Supports TTF and OTF files. You can upload multiple files at once.
             </p>
           </div>
-        ) : (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FileText className="h-6 w-6 text-cbre-green" />
-              <div>
-                <p className="text-sm font-calibre text-dark-grey font-medium">
-                  {fontFile.name}
-                </p>
-                <p className="text-xs text-dark-grey font-calibre opacity-75">
-                  {(fontFile.size / 1024).toFixed(2)} KB
-                </p>
-              </div>
-            </div>
-            <CBREButton
-              variant="outline"
-              onClick={handleRemoveFile}
-              className="flex-shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </CBREButton>
-          </div>
-        )}
-
+          <CBREButton
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            className="mt-2"
+          >
+            Browse Files
+          </CBREButton>
+        </div>
         <input
           ref={fileInputRef}
           type="file"
           accept=".ttf,.otf,.TTF,.OTF"
-          onChange={handleFileInputChange}
+          multiple
+          onChange={(e) => handleFileSelect(e.target.files)}
           className="hidden"
         />
       </div>
 
-      {/* Font Preview */}
-      {fontFile && (
-        <div className="p-4 bg-lighter-grey border border-light-grey">
-          <p className="text-xs text-dark-grey font-calibre mb-2">Preview:</p>
-          <p
-            className="text-2xl"
-            style={{ fontFamily: fontFamily }}
-          >
-            The quick brown fox jumps over the lazy dog
-          </p>
-          <p
-            className="text-lg mt-2"
-            style={{ fontFamily: fontFamily }}
-          >
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ
-          </p>
-          <p
-            className="text-lg"
-            style={{ fontFamily: fontFamily }}
-          >
-            abcdefghijklmnopqrstuvwxyz 0123456789
-          </p>
+      {/* Font List */}
+      <div className="space-y-3">
+        <Label className="text-dark-grey font-calibre font-medium">Available Fonts ({(config.fontLibrary || []).length})</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {(config.fontLibrary || []).map((font) => (
+            <div
+              key={font.id}
+              className="group flex items-center justify-between p-3 bg-white border border-light-grey rounded hover:border-cbre-green transition-all"
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="bg-lighter-grey p-2 rounded">
+                  <FileText className="h-5 w-5 text-cbre-green" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-dark-grey truncate" title={font.name}>
+                    {font.name}
+                  </p>
+                  <p className="text-xs text-dark-grey opacity-75 truncate">
+                    {font.family} • {font.weight} • {font.style}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Preview Text */}
+                <span
+                  className="text-lg opacity-50 hidden group-hover:block"
+                  style={{ fontFamily: font.name, fontStyle: font.style }}
+                >
+                  Aa
+                </span>
+
+                {font.source === 'upload' && (
+                  <button
+                    onClick={() => removeFont(font.id)}
+                    className="p-2 text-dark-grey hover:text-destructive hover:bg-red-50 rounded transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

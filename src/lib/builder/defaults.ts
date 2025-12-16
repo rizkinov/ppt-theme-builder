@@ -3,7 +3,7 @@
  * Using CBRE brand colors and standards
  */
 
-import { ThemeColors, TypographyStyles, LayoutTemplate, SlideDimensions, SlideSize, TemplateConfig } from './types';
+import { ThemeColors, TypographyStyles, LayoutTemplate, SlideDimensions, SlideSize, TemplateConfig, FontAsset } from './types';
 import cbreTheme from '../../../config/cbre-theme';
 
 // Default CBRE theme colors mapped to PowerPoint's 12-color scheme
@@ -22,66 +22,79 @@ export const defaultThemeColors: ThemeColors = {
   followedHyperlink: cbreTheme.colors['sage'], // #538184
 };
 
+// Default Font Library
+export const defaultFontLibrary: FontAsset[] = [
+  // Calibre Family
+  { id: 'calibre-regular', name: 'Calibre Regular', family: 'Calibre', weight: 400, style: 'normal', source: 'default', url: '/fonts/Calibre/Calibre-Regular.otf' },
+  { id: 'calibre-regular-italic', name: 'Calibre Regular Italic', family: 'Calibre', weight: 400, style: 'italic', source: 'default', url: '/fonts/Calibre/Calibre-RegularItalic.otf' },
+  { id: 'calibre-medium', name: 'Calibre Medium', family: 'Calibre', weight: 500, style: 'normal', source: 'default', url: '/fonts/Calibre/Calibre-Medium.otf' },
+  { id: 'calibre-semibold', name: 'Calibre SemiBold', family: 'Calibre', weight: 600, style: 'normal', source: 'default', url: '/fonts/Calibre/Calibre-Semibold.otf' },
+  { id: 'calibre-bold', name: 'Calibre Bold', family: 'Calibre', weight: 700, style: 'normal', source: 'default', url: '/fonts/Calibre/Calibre-Bold.otf' },
+  { id: 'calibre-light', name: 'Calibre Light', family: 'Calibre', weight: 300, style: 'normal', source: 'default', url: '/fonts/Calibre/Calibre-Light.otf' },
+  { id: 'calibre-light-italic', name: 'Calibre Light Italic', family: 'Calibre', weight: 300, style: 'italic', source: 'default', url: '/fonts/Calibre/Calibre-LightItalic.otf' },
+
+  // Financier Display Family
+  { id: 'financier-regular', name: 'Financier Display Regular', family: 'Financier Display', weight: 400, style: 'normal', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-Regular.otf' },
+  { id: 'financier-regular-italic', name: 'Financier Display Regular Italic', family: 'Financier Display', weight: 400, style: 'italic', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-RegularItalic.otf' },
+  { id: 'financier-medium', name: 'Financier Display Medium', family: 'Financier Display', weight: 500, style: 'normal', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-Medium.otf' },
+  { id: 'financier-medium-italic', name: 'Financier Display Medium Italic', family: 'Financier Display', weight: 500, style: 'italic', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-MediumItalic.otf' },
+  { id: 'financier-semibold', name: 'Financier Display SemiBold', family: 'Financier Display', weight: 600, style: 'normal', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-Semibold.otf' },
+  { id: 'financier-semibold-italic', name: 'Financier Display SemiBold Italic', family: 'Financier Display', weight: 600, style: 'italic', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-SemiboldItalic.otf' },
+];
+
 // Default typography styles
 export const defaultTypography: TypographyStyles = {
   heading: {
-    fontFamily: 'heading',
+    fontId: 'financier-semibold',
     fontSize: 48,
-    fontWeight: 700,
     lineHeight: 1.1,
     letterSpacing: 0,
     color: cbreTheme.colors['cbre-green'],
     textTransform: 'none',
   },
   subtitle: {
-    fontFamily: 'heading',
+    fontId: 'financier-medium',
     fontSize: 32,
-    fontWeight: 600,
     lineHeight: 1.2,
     letterSpacing: 0,
     color: cbreTheme.colors['dark-grey'],
     textTransform: 'none',
   },
   bodyLarge: {
-    fontFamily: 'body',
+    fontId: 'calibre-regular',
     fontSize: 20,
-    fontWeight: 400,
     lineHeight: 1.5,
     letterSpacing: 0,
     color: cbreTheme.colors['dark-grey'],
     textTransform: 'none',
   },
   bodySmall: {
-    fontFamily: 'body',
+    fontId: 'calibre-regular',
     fontSize: 16,
-    fontWeight: 400,
     lineHeight: 1.5,
     letterSpacing: 0,
     color: cbreTheme.colors['dark-grey'],
     textTransform: 'none',
   },
   quote: {
-    fontFamily: 'body',
+    fontId: 'calibre-medium',
     fontSize: 24,
-    fontWeight: 500,
     lineHeight: 1.4,
     letterSpacing: 0,
     color: cbreTheme.colors['sage'],
     textTransform: 'none',
   },
   bullet: {
-    fontFamily: 'body',
+    fontId: 'calibre-regular',
     fontSize: 18,
-    fontWeight: 400,
     lineHeight: 1.6,
     letterSpacing: 0,
     color: cbreTheme.colors['dark-grey'],
     textTransform: 'none',
   },
   link: {
-    fontFamily: 'body',
+    fontId: 'calibre-regular',
     fontSize: 18,
-    fontWeight: 400,
     lineHeight: 1.5,
     letterSpacing: 0,
     color: cbreTheme.colors['accent-green'],
@@ -140,17 +153,17 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
         id: 'title',
         type: 'title',
         x: 81,
-        y: 96,
+        y: 91,
         width: 1758,
-        height: 72,
+        height: 80,
       },
       {
         id: 'content',
         type: 'body',
         x: 81,
-        y: 192,
+        y: 194,  // +2px gap from title
         width: 1758,
-        height: 792,
+        height: 795,
       },
     ],
   },
@@ -163,25 +176,25 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
         id: 'title',
         type: 'title',
         x: 81,
-        y: 96,
+        y: 91,
         width: 1758,
-        height: 72,
+        height: 80,
       },
       {
         id: 'content-left',
         type: 'body',
         x: 81,
-        y: 192,
+        y: 194,  // +2px gap from title
         width: 870,
-        height: 792,
+        height: 795,
       },
       {
         id: 'content-right',
         type: 'body',
         x: 969,
-        y: 192,
+        y: 194,  // +2px gap from title
         width: 870,
-        height: 792,
+        height: 795,
       },
     ],
   },
@@ -194,41 +207,41 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
         id: 'title',
         type: 'title',
         x: 81,
-        y: 96,
+        y: 91,
         width: 1758,
-        height: 72,
+        height: 80,
       },
       {
         id: 'left-heading',
         type: 'subtitle',
         x: 81,
-        y: 192,
+        y: 194,  // +2px gap from title
         width: 870,
-        height: 72, // Matches 1 Row height (24px grid)
+        height: 80,
       },
       {
         id: 'left-content',
         type: 'body',
         x: 81,
-        y: 288,
+        y: 296,  // 22px gap from subtitle
         width: 870,
-        height: 696,
+        height: 688,
       },
       {
         id: 'right-heading',
         type: 'subtitle',
         x: 969,
-        y: 192,
+        y: 194,  // +2px gap from title
         width: 870,
-        height: 72,
+        height: 80,
       },
       {
         id: 'right-content',
         type: 'body',
         x: 969,
-        y: 288,
+        y: 296,  // 22px gap from subtitle
         width: 870,
-        height: 696,
+        height: 688,
       },
     ],
   },
@@ -253,6 +266,115 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
     description: 'Empty slide with no placeholders',
     placeholders: [],
   },
+  {
+    id: 'three-content',
+    name: 'Three Content',
+    description: 'Title with three equal columns',
+    placeholders: [
+      {
+        id: 'title',
+        type: 'title',
+        x: 81,
+        y: 91,
+        width: 1758,
+        height: 80,
+      },
+      {
+        id: 'content-left',
+        type: 'body',
+        x: 81,
+        y: 194,  // 23px gap after title
+        width: 574,  // (1758 - 2*18) / 3
+        height: 795,
+      },
+      {
+        id: 'content-center',
+        type: 'body',
+        x: 673,  // 81 + 574 + 18
+        y: 194,
+        width: 574,
+        height: 795,
+      },
+      {
+        id: 'content-right',
+        type: 'body',
+        x: 1265,  // 81 + 574 + 18 + 574 + 18
+        y: 194,
+        width: 574,
+        height: 795,
+      },
+    ],
+  },
+  {
+    id: 'content-sidebar-stacked',
+    name: 'Content + Sidebar',
+    description: 'Half-width content with two stacked sidebar boxes',
+    placeholders: [
+      {
+        id: 'title',
+        type: 'title',
+        x: 81,
+        y: 91,
+        width: 1758,
+        height: 80,
+      },
+      {
+        id: 'content-main',
+        type: 'body',
+        x: 81,
+        y: 194,
+        width: 870,  // Half width
+        height: 795,
+      },
+      {
+        id: 'sidebar-top',
+        type: 'body',
+        x: 969,  // 81 + 870 + 18
+        y: 194,
+        width: 870,
+        height: 386,  // (795 - 22) / 2
+      },
+      {
+        id: 'sidebar-bottom',
+        type: 'body',
+        x: 969,
+        y: 602,  // 194 + 386 + 22
+        width: 870,
+        height: 387,
+      },
+    ],
+  },
+  {
+    id: 'sidebar-content',
+    name: 'Sidebar + Content',
+    description: 'Five-column sidebar with seventeen-column content',
+    placeholders: [
+      {
+        id: 'title',
+        type: 'title',
+        x: 81,
+        y: 91,
+        width: 1758,
+        height: 80,
+      },
+      {
+        id: 'sidebar',
+        type: 'body',
+        x: 81,
+        y: 194,
+        width: 387,
+        height: 795,
+      },
+      {
+        id: 'content-main',
+        type: 'body',
+        x: 486,  // 81 + 387 + 18
+        y: 194,
+        width: 1353,
+        height: 795,
+      },
+    ],
+  },
 ];
 
 // Default template configuration
@@ -262,16 +384,7 @@ export const defaultTemplateConfig: TemplateConfig = {
   theme: {
     colors: defaultThemeColors,
   },
-  fonts: {
-    heading: {
-      family: 'Financier Display',
-      file: null,
-    },
-    body: {
-      family: 'Calibre',
-      file: null,
-    },
-  },
+  fontLibrary: defaultFontLibrary,
   typography: defaultTypography,
   slideSize: '16:9',
   slideDimensions: slideDimensions['16:9'],
@@ -293,3 +406,4 @@ export const defaultTemplateConfig: TemplateConfig = {
   ],
   selectedLayouts: ['title-slide', 'title-content', 'two-content', 'blank'],
 };
+

@@ -1,9 +1,10 @@
+
 "use client";
 
 import React from 'react';
 import { Type } from 'lucide-react';
 import { PageHeader } from '@/src/components/builder/PageHeader';
-import { FontUploader } from '@/src/components/builder/FontUploader';
+import { FontManager } from '@/src/components/builder/FontUploader';
 import { TextStyleEditor } from '@/src/components/builder/TextStyleEditor';
 import { useBuilderStore } from '@/src/lib/builder/store';
 import { CBRECard, CBRECardHeader, CBRECardTitle, CBRECardContent } from '@/src/components/cbre/CBRECard';
@@ -20,7 +21,7 @@ const textStyles = [
 ];
 
 export default function TypographyPage() {
-  const { config, updateFont, updateTextStyle } = useBuilderStore();
+  const { config, updateTextStyle } = useBuilderStore();
 
   return (
     <div className="min-h-screen bg-lighter-grey">
@@ -41,36 +42,16 @@ export default function TypographyPage() {
           </CBRECardContent>
         </CBRECard>
 
-        {/* Font Upload Section */}
+        {/* Font Manager Section */}
         <CBRECard>
           <CBRECardHeader>
-            <CBRECardTitle>Font Upload</CBRECardTitle>
+            <CBRECardTitle>Font Library</CBRECardTitle>
             <p className="text-sm text-dark-grey font-calibre mt-1">
-              Upload your heading and body fonts for the template
+              Upload and manage your font files.
             </p>
           </CBRECardHeader>
           <CBRECardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Heading Font */}
-              <FontUploader
-                label="Heading Font"
-                description="Used for titles and headings"
-                fontFamily={config.fonts.heading.family}
-                onFontFamilyChange={(family) => updateFont('heading', { family })}
-                fontFile={config.fonts.heading.file}
-                onFontFileChange={(file) => updateFont('heading', { file })}
-              />
-
-              {/* Body Font */}
-              <FontUploader
-                label="Body Font"
-                description="Used for body text and paragraphs"
-                fontFamily={config.fonts.body.family}
-                onFontFamilyChange={(family) => updateFont('body', { family })}
-                fontFile={config.fonts.body.file}
-                onFontFileChange={(file) => updateFont('body', { file })}
-              />
-            </div>
+            <FontManager />
           </CBRECardContent>
         </CBRECard>
 
@@ -98,6 +79,7 @@ export default function TypographyPage() {
                     label={style.label}
                     description={style.description}
                     style={config.typography[style.key]}
+                    fontLibrary={config.fontLibrary || []}
                     onChange={(updates) => updateTextStyle(style.key, updates)}
                   />
                 </CBRETabsContent>
@@ -118,6 +100,7 @@ export default function TypographyPage() {
             <div className="space-y-4 p-6 bg-white border border-light-grey">
               {textStyles.map((styleConfig) => {
                 const style = config.typography[styleConfig.key];
+                const fontAsset = (config.fontLibrary || []).find(f => f.id === style.fontId);
                 return (
                   <div key={styleConfig.key} className="space-y-1">
                     <p className="text-xs text-dark-grey font-calibre opacity-75">
@@ -125,9 +108,10 @@ export default function TypographyPage() {
                     </p>
                     <p
                       style={{
-                        fontFamily: style.fontFamily === 'heading' ? 'var(--font-financier-display)' : 'var(--font-calibre)',
+                        fontFamily: fontAsset ? fontAsset.name : 'sans-serif',
                         fontSize: `${style.fontSize}pt`,
-                        fontWeight: style.fontWeight,
+                        fontWeight: fontAsset ? (fontAsset.weight || 'normal') : 'normal',
+                        fontStyle: fontAsset ? (fontAsset.style || 'normal') : 'normal',
                         lineHeight: style.lineHeight,
                         letterSpacing: `${style.letterSpacing}em`,
                         color: style.color,

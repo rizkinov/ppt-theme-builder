@@ -4,26 +4,70 @@
  */
 
 import { xmlDeclaration, NAMESPACES } from './xml-utils';
-import { OOXMLSlideSize } from './types';
+import { OOXMLSlideSize, TypographyConfig, TextStyleConfig, OOXMLFontScheme } from './types';
+import { FontAsset } from '../types';
 
-interface TextStyleConfig {
-  fontSize: number;  // points
-  fontWeight: number;
-  color: string;     // hex
-}
-
-interface TypographyConfig {
-  heading: TextStyleConfig;
-  subtitle: TextStyleConfig;
-  bodyLarge: TextStyleConfig;
+export interface FontUtils {
+  getFontRefs: (fontId: string) => { lt: string; ea: string; cs: string };
+  getWeight: (fontId: string, styleWeight?: number) => string;
+  getItalic: (fontId: string) => string;
 }
 
 export function generateSlideMasterXml(
   slideSize: OOXMLSlideSize,
   typography: TypographyConfig,
-  backgroundColor: string
+  layoutCount: number,
+  fontLibrary: FontAsset[],
+  fonts: OOXMLFontScheme
 ): string {
-  const xml = `${xmlDeclaration()}<p:sldMaster xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}">
+  // Helper to resolve font references
+  const getFontRefs = (fontId: string) => {
+    const asset = fontLibrary.find(f => f.id === fontId);
+    if (!asset) return { lt: '+mn-lt', ea: '+mn-ea', cs: '+mn-cs' }; // Default to minor
+
+    // If it's a specific weight variant that isn't standard Regular/Bold, prefer the explicit name
+    // This fixes issues where "Calibre Light" or "Calibre Medium" map to generic "Calibre" (+mn-lt)
+    // and thus lose their specific weight appearance in PPT.
+    const isSpecialVariant = asset.name.match(/(Light|Medium|Thin|Black|Semibold|ExtraBold)/i);
+
+    if (isSpecialVariant) {
+      // Use the explicit font name (e.g. "Calibre Light")
+      // NOTE: This assumes the font is installed/embedded with this name as the typeface.
+      // For standard Windows/Office use, usually the Family Name is used, but for specific
+      // weights that are separate font files acting as faces, we use the specific name.
+      return { lt: asset.name, ea: asset.name, cs: asset.name };
+    }
+
+    if (asset.family === fonts.majorFont) return { lt: '+mj-lt', ea: '+mj-ea', cs: '+mj-cs' };
+    if (asset.family === fonts.minorFont) return { lt: '+mn-lt', ea: '+mn-ea', cs: '+mn-cs' };
+
+    // Custom font
+    return { lt: asset.family, ea: asset.family, cs: asset.family };
+  };
+
+  // Helper to resolve weight
+  const getWeight = (fontId: string, styleWeight?: number) => {
+    const asset = fontLibrary.find(f => f.id === fontId);
+
+    // If it's a special variant (like Medium), we do NOT want to mimic bold.
+    // We want to use the font file itself which provides the weight.
+    const isSpecialVariant = asset?.name.match(/(Light|Medium|Thin|Black|Semibold|ExtraBold)/i);
+    if (isSpecialVariant) return '0';
+
+    // Otherwise, for standard fonts or generic families, use bold for >= 600
+    const weight = styleWeight || asset?.weight || 400;
+    return weight >= 600 ? '1' : '0';
+  };
+
+  // Helper to resolve italic
+  const getItalic = (fontId: string) => {
+    const asset = fontLibrary.find(f => f.id === fontId);
+    return asset?.style === 'italic' ? '1' : '0';
+  };
+
+  const utils = { getFontRefs, getWeight, getItalic };
+
+  return `${xmlDeclaration()}<p:sldMaster xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}">
   <p:cSld>
     <p:bg>
       <p:bgRef idx="1001">
@@ -52,18 +96,22 @@ export function generateSlideMasterXml(
     </p:spTree>
   </p:cSld>
   <p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>
-  ${generateSlideLayoutIdList()}
-  ${generateTextStyles(typography)}
+  ${generateSlideLayoutIdList(layoutCount)}
+  ${generateTextStyles(typography, fontLibrary, utils)}
 </p:sldMaster>`;
-
-  return xml;
 }
 
-function generateTitlePlaceholder(slideSize: OOXMLSlideSize, style: TextStyleConfig): string {
-  const x = Math.round(slideSize.cx * 0.0625);  // 6.25% from left
-  const y = Math.round(slideSize.cy * 0.074);   // 7.4% from top
-  const cx = Math.round(slideSize.cx * 0.875);  // 87.5% width
-  const cy = Math.round(slideSize.cy * 0.185);  // 18.5% height
+function generateTitlePlaceholder(slideSize: OOXMLSlideSize, _style: TextStyleConfig): string {
+  // CBRE Grid alignment: exact pixel values converted to EMUs
+  // For 16:9: 1920x1080px at 6350 EMUs per pixel
+  const emuPerPixelX = slideSize.cx / 1920;
+  const emuPerPixelY = slideSize.cy / 1080;
+
+  // CBRE Grid: left margin 81px, content width 1758px, title height 72px
+  const x = Math.round(81 * emuPerPixelX);
+  const y = Math.round(91 * emuPerPixelY);  // Aligned to content-top guide
+  const cx = Math.round(1758 * emuPerPixelX);
+  const cy = Math.round(80 * emuPerPixelY);  // Title height
 
   return `<p:sp>
         <p:nvSpPr>
@@ -85,7 +133,7 @@ function generateTitlePlaceholder(slideSize: OOXMLSlideSize, style: TextStyleCon
           </a:prstGeom>
         </p:spPr>
         <p:txBody>
-          <a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="ctr"/>
+          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/>
           <a:lstStyle/>
           <a:p>
             <a:r>
@@ -98,11 +146,16 @@ function generateTitlePlaceholder(slideSize: OOXMLSlideSize, style: TextStyleCon
       </p:sp>`;
 }
 
-function generateBodyPlaceholder(slideSize: OOXMLSlideSize, style: TextStyleConfig): string {
-  const x = Math.round(slideSize.cx * 0.0625);  // 6.25% from left
-  const y = Math.round(slideSize.cy * 0.296);   // 29.6% from top  
-  const cx = Math.round(slideSize.cx * 0.875);  // 87.5% width
-  const cy = Math.round(slideSize.cy * 0.593);  // 59.3% height
+function generateBodyPlaceholder(slideSize: OOXMLSlideSize, _style: TextStyleConfig): string {
+  // CBRE Grid alignment: exact pixel values converted to EMUs
+  const emuPerPixelX = slideSize.cx / 1920;
+  const emuPerPixelY = slideSize.cy / 1080;
+
+  // CBRE Grid: left margin 81px, body starts at 194px (+2px gap from title)
+  const x = Math.round(81 * emuPerPixelX);
+  const y = Math.round(194 * emuPerPixelY);  // +2px gap from title
+  const cx = Math.round(1758 * emuPerPixelX);
+  const cy = Math.round(795 * emuPerPixelY);  // Content height
 
   return `<p:sp>
         <p:nvSpPr>
@@ -124,7 +177,7 @@ function generateBodyPlaceholder(slideSize: OOXMLSlideSize, style: TextStyleConf
           </a:prstGeom>
         </p:spPr>
         <p:txBody>
-          <a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0"/>
+          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0"/>
           <a:lstStyle/>
           <a:p>
             <a:pPr lvl="0"/>
@@ -192,7 +245,7 @@ function generateDatePlaceholder(slideSize: OOXMLSlideSize): string {
           </a:prstGeom>
         </p:spPr>
         <p:txBody>
-          <a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="ctr"/>
+          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/>
           <a:lstStyle>
             <a:lvl1pPr algn="l">
               <a:defRPr sz="1200">
@@ -241,7 +294,7 @@ function generateFooterPlaceholder(slideSize: OOXMLSlideSize): string {
           </a:prstGeom>
         </p:spPr>
         <p:txBody>
-          <a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="ctr"/>
+          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/>
           <a:lstStyle>
             <a:lvl1pPr algn="ctr">
               <a:defRPr sz="1200">
@@ -286,7 +339,7 @@ function generateSlideNumberPlaceholder(slideSize: OOXMLSlideSize): string {
           </a:prstGeom>
         </p:spPr>
         <p:txBody>
-          <a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="ctr"/>
+          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/>
           <a:lstStyle>
             <a:lvl1pPr algn="r">
               <a:defRPr sz="1200">
@@ -309,114 +362,151 @@ function generateSlideNumberPlaceholder(slideSize: OOXMLSlideSize): string {
       </p:sp>`;
 }
 
-function generateSlideLayoutIdList(): string {
-  // We'll create 6 standard layouts
-  return `<p:sldLayoutIdLst>
-    <p:sldLayoutId id="2147483649" r:id="rId1"/>
-    <p:sldLayoutId id="2147483650" r:id="rId2"/>
-    <p:sldLayoutId id="2147483651" r:id="rId3"/>
-    <p:sldLayoutId id="2147483652" r:id="rId4"/>
-    <p:sldLayoutId id="2147483653" r:id="rId5"/>
-    <p:sldLayoutId id="2147483654" r:id="rId6"/>
+function generateSlideLayoutIdList(layoutCount: number): string {
+  let ids = '';
+  // Start ID from a safe range that won't conflict with master ID
+  const startId = 2147483649;
+
+  for (let i = 0; i < layoutCount; i++) {
+    // rId1 is reserved for Theme, so layouts start at rId2
+    ids += `\n    <p:sldLayoutId id="${startId + i}" r:id="rId${i + 2}"/>`;
+  }
+
+  return `<p:sldLayoutIdLst>${ids}
   </p:sldLayoutIdLst>`;
 }
 
-function generateTextStyles(typography: TypographyConfig): string {
+// ... Placeholders same as before ...
+
+function generateTextStyles(typography: TypographyConfig, fontLibrary: FontAsset[], utils: FontUtils): string {
   // Font sizes in OOXML are in hundredths of a point (so 48pt = 4800, 20pt = 2000)
   const titleSize = typography.heading.fontSize * 100;
   const bodySize = typography.bodyLarge.fontSize * 100;
 
+  // Helper to calculate line spacing (percentage)
+  const getLnSpc = (lh?: number) => Math.round((lh || 1.0) * 100000);
+
+  // Helper to calculate letter spacing (hundredths of a point)
+  // em * fontSize * 100
+  const getSpc = (size: number, spacing?: number) => Math.round(size * 100 * (spacing || 0));
+
+  const fonts = {
+    heading: utils.getFontRefs(typography.heading.fontId),
+    bodyLarge: utils.getFontRefs(typography.bodyLarge.fontId),
+  };
+
+  const getWeight = utils.getWeight;
+  const getItalic = utils.getItalic;
+
   return `<p:txStyles>
     <p:titleStyle>
       <a:lvl1pPr algn="ctr" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(typography.heading.lineHeight)}"/>
+        </a:lnSpc>
         <a:spcBef>
           <a:spcPct val="0"/>
         </a:spcBef>
         <a:buNone/>
-        <a:defRPr sz="${Math.round(titleSize)}" kern="1200" ${typography.heading.fontWeight >= 600 ? 'b="1"' : ''}>
+        <a:defRPr sz="${Math.round(titleSize)}" kern="1200" spc="${getSpc(typography.heading.fontSize, typography.heading.letterSpacing)}" b="${getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="+mj-lt"/>
-          <a:ea typeface="+mj-ea"/>
-          <a:cs typeface="+mj-cs"/>
+          <a:latin typeface="${fonts.heading.lt}"/>
+          <a:ea typeface="${fonts.heading.ea}"/>
+          <a:cs typeface="${fonts.heading.cs}"/>
         </a:defRPr>
       </a:lvl1pPr>
     </p:titleStyle>
     <p:bodyStyle>
       <a:lvl1pPr marL="342900" indent="-342900" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+        </a:lnSpc>
         <a:spcBef>
           <a:spcPct val="20000"/>
         </a:spcBef>
         <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
         <a:buChar char="•"/>
-        <a:defRPr sz="${Math.round(bodySize)}" kern="1200">
+        <a:defRPr sz="${Math.round(bodySize)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize, typography.bodyLarge.letterSpacing)}" b="${getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="+mn-lt"/>
-          <a:ea typeface="+mn-ea"/>
-          <a:cs typeface="+mn-cs"/>
+          <a:latin typeface="${fonts.bodyLarge.lt}"/>
+          <a:ea typeface="${fonts.bodyLarge.ea}"/>
+          <a:cs typeface="${fonts.bodyLarge.cs}"/>
         </a:defRPr>
       </a:lvl1pPr>
       <a:lvl2pPr marL="742950" indent="-285750" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+        </a:lnSpc>
         <a:spcBef>
           <a:spcPct val="20000"/>
         </a:spcBef>
         <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
         <a:buChar char="–"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.9)}" kern="1200">
+        <a:defRPr sz="${Math.round(bodySize * 0.9)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.9, typography.bodyLarge.letterSpacing)}">
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="+mn-lt"/>
-          <a:ea typeface="+mn-ea"/>
-          <a:cs typeface="+mn-cs"/>
+          <a:latin typeface="${fonts.bodyLarge.lt}"/>
+          <a:ea typeface="${fonts.bodyLarge.ea}"/>
+          <a:cs typeface="${fonts.bodyLarge.cs}"/>
         </a:defRPr>
       </a:lvl2pPr>
       <a:lvl3pPr marL="1143000" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+        </a:lnSpc>
         <a:spcBef>
           <a:spcPct val="20000"/>
         </a:spcBef>
         <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
         <a:buChar char="•"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.8)}" kern="1200">
+        <a:defRPr sz="${Math.round(bodySize * 0.8)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.8, typography.bodyLarge.letterSpacing)}">
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="+mn-lt"/>
-          <a:ea typeface="+mn-ea"/>
-          <a:cs typeface="+mn-cs"/>
+          <a:latin typeface="${fonts.bodyLarge.lt}"/>
+          <a:ea typeface="${fonts.bodyLarge.ea}"/>
+          <a:cs typeface="${fonts.bodyLarge.cs}"/>
         </a:defRPr>
       </a:lvl3pPr>
       <a:lvl4pPr marL="1600200" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+        </a:lnSpc>
         <a:spcBef>
           <a:spcPct val="20000"/>
         </a:spcBef>
         <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
         <a:buChar char="–"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.7)}" kern="1200">
+        <a:defRPr sz="${Math.round(bodySize * 0.7)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.7, typography.bodyLarge.letterSpacing)}">
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="+mn-lt"/>
-          <a:ea typeface="+mn-ea"/>
-          <a:cs typeface="+mn-cs"/>
+          <a:latin typeface="${fonts.bodyLarge.lt}"/>
+          <a:ea typeface="${fonts.bodyLarge.ea}"/>
+          <a:cs typeface="${fonts.bodyLarge.cs}"/>
         </a:defRPr>
       </a:lvl4pPr>
       <a:lvl5pPr marL="2057400" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+        </a:lnSpc>
         <a:spcBef>
           <a:spcPct val="20000"/>
         </a:spcBef>
         <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
         <a:buChar char="»"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.7)}" kern="1200">
+        <a:defRPr sz="${Math.round(bodySize * 0.7)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.7, typography.bodyLarge.letterSpacing)}">
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="+mn-lt"/>
-          <a:ea typeface="+mn-ea"/>
-          <a:cs typeface="+mn-cs"/>
+          <a:latin typeface="${fonts.bodyLarge.lt}"/>
+          <a:ea typeface="${fonts.bodyLarge.ea}"/>
+          <a:cs typeface="${fonts.bodyLarge.cs}"/>
         </a:defRPr>
       </a:lvl5pPr>
     </p:bodyStyle>
@@ -441,10 +531,10 @@ function generateTextStyles(typography: TypographyConfig): string {
 // Generate slide master relationships file
 export function generateSlideMasterRelsXml(layoutCount: number): string {
   let rels = `${xmlDeclaration()}<Relationships xmlns="${NAMESPACES.relationships}">
-  <Relationship Id="rId${layoutCount + 1}" Type="${NAMESPACES.relTheme}" Target="../theme/theme1.xml"/>`;
+  <Relationship Id="rId1" Type="${NAMESPACES.relTheme}" Target="../theme/theme1.xml"/>`;
 
   for (let i = 1; i <= layoutCount; i++) {
-    rels += `\n  <Relationship Id="rId${i}" Type="${NAMESPACES.relSlideLayout}" Target="../slideLayouts/slideLayout${i}.xml"/>`;
+    rels += `\n  <Relationship Id="rId${i + 1}" Type="${NAMESPACES.relSlideLayout}" Target="../slideLayouts/slideLayout${i}.xml"/>`;
   }
 
   rels += '\n</Relationships>';
