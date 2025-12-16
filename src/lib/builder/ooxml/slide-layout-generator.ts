@@ -1113,7 +1113,7 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
             <a:spLocks noGrp="1"/>
           </p:cNvSpPr>
           <p:nvPr>
-            <p:ph sz="third" idx="1"/>
+            <p:ph sz="quarter" idx="1"/>
           </p:nvPr>
         </p:nvSpPr>
         <p:spPr>
@@ -1153,7 +1153,7 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
             <a:spLocks noGrp="1"/>
           </p:cNvSpPr>
           <p:nvPr>
-            <p:ph sz="third" idx="2"/>
+            <p:ph sz="quarter" idx="2"/>
           </p:nvPr>
         </p:nvSpPr>
         <p:spPr>
@@ -1193,7 +1193,7 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
             <a:spLocks noGrp="1"/>
           </p:cNvSpPr>
           <p:nvPr>
-            <p:ph sz="third" idx="3"/>
+            <p:ph sz="quarter" idx="3"/>
           </p:nvPr>
         </p:nvSpPr>
         <p:spPr>

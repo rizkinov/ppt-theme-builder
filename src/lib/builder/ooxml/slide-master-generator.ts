@@ -229,7 +229,7 @@ function generateDatePlaceholder(slideSize: OOXMLSlideSize): string {
             <a:spLocks noGrp="1"/>
           </p:cNvSpPr>
           <p:nvPr>
-            <p:ph type="dt" sz="half" idx="2"/>
+            <p:ph type="dt" sz="half" idx="10"/>
           </p:nvPr>
         </p:nvSpPr>
         <p:spPr>
@@ -278,7 +278,7 @@ function generateFooterPlaceholder(slideSize: OOXMLSlideSize): string {
             <a:spLocks noGrp="1"/>
           </p:cNvSpPr>
           <p:nvPr>
-            <p:ph type="ftr" sz="quarter" idx="3"/>
+            <p:ph type="ftr" sz="quarter" idx="11"/>
           </p:nvPr>
         </p:nvSpPr>
         <p:spPr>
@@ -323,7 +323,7 @@ function generateSlideNumberPlaceholder(slideSize: OOXMLSlideSize): string {
             <a:spLocks noGrp="1"/>
           </p:cNvSpPr>
           <p:nvPr>
-            <p:ph type="sldNum" sz="quarter" idx="4"/>
+            <p:ph type="sldNum" sz="quarter" idx="12"/>
           </p:nvPr>
         </p:nvSpPr>
         <p:spPr>
