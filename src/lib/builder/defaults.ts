@@ -129,67 +129,81 @@ export const slideDimensions: Record<SlideSize, SlideDimensions> = {
 // ============================================================================
 // CBRE GRID-ALIGNED LAYOUT TEMPLATES
 // ============================================================================
-// Grid Constants:
-// - MARGIN_LEFT_RIGHT = 79px, MARGIN_TOP = 52px, MARGIN_BOTTOM = 58px
-// - COLUMN_WIDTH = 67px, COL_GUTTER = 288/21 ≈ 13.71px
-// - ROW_GUTTER = 17px
-// - ROW_HEIGHTS = [69, 79, 85, 79, 79, 85, 79, 79, 85, 65]
+// Grid Constants extracted from CBRE PPT.pptx (p15:sldGuideLst):
 //
-// Row Y positions (start of each row after gutter):
-// Row 1: 69px (ends 138px)
-// Row 2: 155px (ends 234px)
-// Row 3: 251px (ends 336px)
-// Row 4: 353px (ends 432px)
-// Row 5: 449px (ends 528px)
-// Row 6: 545px (ends 630px)
-// Row 7: 647px (ends 726px)
-// Row 8: 743px (ends 822px)
-// Row 9: 839px (ends 924px)
-// Row 10: 941px (ends 1006px)
-// Bottom margin: 1022px (to 1080px)
+// HORIZONTAL (X-axis):
+// - Left margin: 0-64px, Left gutter: 64-80px
+// - Content area: 80px to 1840px (width: 1760px)
+// - 22 columns with alternating widths (64px/66px) and gutters (14px/16px)
+// - Right gutter: 1840-1856px, Right margin: 1856-1920px
 //
-// Content area: X = 79px to 1841px (width = 1762px)
-// Half width (11 cols): 79px to ~959px, ~960px to 1841px
+// VERTICAL (Y-axis):
+// - Top margin: 0-56px, Top gutter: 56-72px
+// - Content area: 72px to 1008px (height: 936px)
+// - 10 rows with varying heights (66-84px) and 16px gutters
+// - Bottom gutter: 1008-1024px, Bottom margin: 1024-1080px
+//
+// Row Y positions (extracted from guides):
+// Row 1:  72-138px  (66px), gutter 16px
+// Row 2:  154-236px (82px), gutter 16px
+// Row 3:  252-334px (82px), gutter 16px
+// Row 4:  350-434px (84px), gutter 16px
+// Row 5:  450-532px (82px), gutter 16px
+// Row 6:  548-630px (82px), gutter 16px
+// Row 7:  646-730px (84px), gutter 16px
+// Row 8:  746-828px (82px), gutter 16px
+// Row 9:  844-926px (82px), gutter 16px
+// Row 10: 942-1008px (66px)
 // ============================================================================
 
-// Grid calculation helper constants
+// Grid calculation helper constants - EXACT values from CBRE PPT.pptx
 const GRID = {
-  // Margins
-  MARGIN_X: 79,                    // Left/right margin
-  MARGIN_TOP: 52,                  // Top margin
-  MARGIN_BOTTOM: 58,               // Bottom margin
+  // Margins (from extracted guides)
+  MARGIN_LEFT: 64,                 // Left margin width
+  MARGIN_RIGHT: 64,                // Right margin width
+  MARGIN_TOP: 56,                  // Top margin height
+  MARGIN_BOTTOM: 56,               // Bottom margin height
+  GUTTER: 16,                      // Standard gutter size
 
-  // Column/Row gaps
-  COL_GUTTER: 288 / 21,            // ≈13.71px
-  ROW_GUTTER: 17,
-  COLUMN_WIDTH: 67,
+  // Content area boundaries (from guides)
+  CONTENT_X: 80,                   // Content starts after left margin + gutter
+  CONTENT_END_X: 1840,             // Content ends before right gutter + margin
+  CONTENT_Y: 72,                   // Content starts after top margin + gutter
+  CONTENT_END_Y: 1008,             // Content ends before bottom gutter + margin
 
-  // Row Y positions (start of each row)
-  ROW_Y: [69, 155, 251, 353, 449, 545, 647, 743, 839, 941],
-  ROW_H: [69, 79, 85, 79, 79, 85, 79, 79, 85, 65],
+  // Calculated content dimensions
+  CONTENT_WIDTH: 1760,             // 1840 - 80 = 1760px
+  CONTENT_HEIGHT: 936,             // 1008 - 72 = 936px
 
-  // Content area
-  CONTENT_X: 79,
-  CONTENT_WIDTH: 1762,             // 1920 - 79 - 79
-  CONTENT_Y: 69,                   // Row 1 start
-  CONTENT_BOTTOM: 1006,            // Row 10 end
+  // Row Y positions (start of each row) - from extracted guides
+  ROW_Y: [72, 154, 252, 350, 450, 548, 646, 746, 844, 942],
+  // Row end positions (end of each row)
+  ROW_END: [138, 236, 334, 434, 532, 630, 730, 828, 926, 1008],
+  // Row heights
+  ROW_H: [66, 82, 82, 84, 82, 82, 84, 82, 82, 66],
 
-  // Half widths (11 columns each = 11*67 + 10*13.71 = 737 + 137.1 = 874px)
-  HALF_WIDTH: Math.round(11 * 67 + 10 * (288 / 21)), // ≈874px
-  HALF_GAP: Math.round(288 / 21),    // ≈14px gap between halves
+  // Half widths for 2-column layouts (11 columns each)
+  // Left half: columns 1-11 (80 to 952)
+  // Right half: columns 12-22 (968 to 1840)
+  HALF_LEFT_END: 952,              // End of left half (col 11 end)
+  HALF_RIGHT_START: 968,           // Start of right half (col 12 start)
+  HALF_WIDTH: 872,                 // 952 - 80 = 872px (also 1840 - 968 = 872px)
+  HALF_GAP: 16,                    // Gap between halves (952 to 968)
 
-  // Three column widths (7-8-7 split)
-  // 7 cols: 7*67 + 6*13.71 = 469 + 82 = 551px
-  // 8 cols: 8*67 + 7*13.71 = 536 + 96 = 632px
-  THREE_COL_7: Math.round(7 * 67 + 6 * (288 / 21)),  // ≈551px
-  THREE_COL_8: Math.round(8 * 67 + 7 * (288 / 21)),  // ≈632px
+  // Three column widths (7-7-8 split for columns)
+  // Col 1-7: 80 to 630 (550px)
+  // Col 8-14: 644 to 1194 (550px) 
+  // Col 15-22: 1210 to 1840 (630px) -- slightly wider for balance
+  THREE_COL_NARROW: 550,
+  THREE_COL_WIDE: 630,
 };
 
-// Calculate positions
-const TITLE_Y = GRID.ROW_Y[0];                    // 69px - Row 1
-const TITLE_HEIGHT = GRID.ROW_H[0] + GRID.ROW_GUTTER + GRID.ROW_H[1]; // Rows 1-2 = 69+17+79 = 165px
-const CONTENT_Y = GRID.ROW_Y[2];                  // 251px - Row 3 start
-const CONTENT_HEIGHT = GRID.CONTENT_BOTTOM - CONTENT_Y; // 1006 - 251 = 755px
+// Calculate positions using GRID constants
+const TITLE_Y = GRID.ROW_Y[0];                                    // 72px - Row 1 start
+const TITLE_HEIGHT = GRID.ROW_END[1] - GRID.ROW_Y[0];             // 236 - 72 = 164px (Rows 1-2)
+const CONTENT_Y = GRID.ROW_Y[2];                                  // 252px - Row 3 start
+const CONTENT_HEIGHT = GRID.CONTENT_END_Y - CONTENT_Y;            // 1008 - 252 = 756px (Rows 3-10)
+
 
 export const defaultLayoutTemplates: LayoutTemplate[] = [
   {
@@ -200,18 +214,18 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: GRID.ROW_Y[3],                         // 353 - Row 4 (centered area)
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: GRID.ROW_H[3] + GRID.ROW_GUTTER + GRID.ROW_H[4], // 79+17+79 = 175
+        x: GRID.CONTENT_X,                        // 80px
+        y: GRID.ROW_Y[3],                         // 350px - Row 4 (centered area)
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: GRID.ROW_END[4] - GRID.ROW_Y[3],  // 532 - 350 = 182px (Rows 4-5)
       },
       {
         id: 'subtitle',
         type: 'subtitle',
-        x: GRID.CONTENT_X,                        // 79
-        y: GRID.ROW_Y[5],                         // 545 - Row 6
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: GRID.ROW_H[5] + GRID.ROW_GUTTER + GRID.ROW_H[6], // 85+17+79 = 181
+        x: GRID.CONTENT_X,                        // 80px
+        y: GRID.ROW_Y[5],                         // 548px - Row 6
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: GRID.ROW_END[6] - GRID.ROW_Y[5],  // 730 - 548 = 182px (Rows 6-7)
       },
     ],
   },
@@ -223,18 +237,18 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: TITLE_Y,                               // 69 - Row 1
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: TITLE_HEIGHT,                     // 165 (Rows 1-2)
+        x: GRID.CONTENT_X,                        // 80px
+        y: TITLE_Y,                               // 72px - Row 1
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: TITLE_HEIGHT,                     // 164px (Rows 1-2)
       },
       {
         id: 'content',
         type: 'body',
-        x: GRID.CONTENT_X,                        // 79
-        y: CONTENT_Y,                             // 251 - Row 3
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.CONTENT_X,                        // 80px
+        y: CONTENT_Y,                             // 252px - Row 3
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: CONTENT_HEIGHT,                   // 756px (Rows 3-10)
       },
     ],
   },
@@ -246,26 +260,26 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: TITLE_Y,                               // 69
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: TITLE_HEIGHT,                     // 165
+        x: GRID.CONTENT_X,                        // 80px
+        y: TITLE_Y,                               // 72px
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: TITLE_HEIGHT,                     // 164px
       },
       {
         id: 'content-left',
         type: 'body',
-        x: GRID.CONTENT_X,                        // 79
-        y: CONTENT_Y,                             // 251
-        width: GRID.HALF_WIDTH,                   // 874
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.CONTENT_X,                        // 80px
+        y: CONTENT_Y,                             // 252px
+        width: GRID.HALF_WIDTH,                   // 872px (cols 1-11)
+        height: CONTENT_HEIGHT,                   // 756px
       },
       {
         id: 'content-right',
         type: 'body',
-        x: GRID.CONTENT_X + GRID.HALF_WIDTH + GRID.HALF_GAP, // 79 + 874 + 14 = 967
-        y: CONTENT_Y,                             // 251
-        width: GRID.HALF_WIDTH,                   // 874
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.HALF_RIGHT_START,                 // 968px (col 12 start)
+        y: CONTENT_Y,                             // 252px
+        width: GRID.HALF_WIDTH,                   // 872px (cols 12-22)
+        height: CONTENT_HEIGHT,                   // 756px
       },
     ],
   },
@@ -277,42 +291,42 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: TITLE_Y,                               // 69
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: GRID.ROW_H[0],                    // 69 (just Row 1)
+        x: GRID.CONTENT_X,                        // 80px
+        y: TITLE_Y,                               // 72px
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: GRID.ROW_H[0],                    // 66px (just Row 1)
       },
       {
         id: 'left-heading',
         type: 'subtitle',
-        x: GRID.CONTENT_X,                        // 79
-        y: GRID.ROW_Y[1],                         // 155 - Row 2
-        width: GRID.HALF_WIDTH,                   // 874
-        height: GRID.ROW_H[1],                    // 79
+        x: GRID.CONTENT_X,                        // 80px
+        y: GRID.ROW_Y[1],                         // 154px - Row 2
+        width: GRID.HALF_WIDTH,                   // 872px
+        height: GRID.ROW_H[1],                    // 82px
       },
       {
         id: 'left-content',
         type: 'body',
-        x: GRID.CONTENT_X,                        // 79
-        y: CONTENT_Y,                             // 251 - Row 3
-        width: GRID.HALF_WIDTH,                   // 874
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.CONTENT_X,                        // 80px
+        y: CONTENT_Y,                             // 252px - Row 3
+        width: GRID.HALF_WIDTH,                   // 872px
+        height: CONTENT_HEIGHT,                   // 756px
       },
       {
         id: 'right-heading',
         type: 'subtitle',
-        x: GRID.CONTENT_X + GRID.HALF_WIDTH + GRID.HALF_GAP, // 967
-        y: GRID.ROW_Y[1],                         // 155
-        width: GRID.HALF_WIDTH,                   // 874
-        height: GRID.ROW_H[1],                    // 79
+        x: GRID.HALF_RIGHT_START,                 // 968px
+        y: GRID.ROW_Y[1],                         // 154px
+        width: GRID.HALF_WIDTH,                   // 872px
+        height: GRID.ROW_H[1],                    // 82px
       },
       {
         id: 'right-content',
         type: 'body',
-        x: GRID.CONTENT_X + GRID.HALF_WIDTH + GRID.HALF_GAP, // 967
-        y: CONTENT_Y,                             // 251
-        width: GRID.HALF_WIDTH,                   // 874
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.HALF_RIGHT_START,                 // 968px
+        y: CONTENT_Y,                             // 252px
+        width: GRID.HALF_WIDTH,                   // 872px
+        height: CONTENT_HEIGHT,                   // 756px
       },
     ],
   },
@@ -324,10 +338,10 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'section-title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: GRID.ROW_Y[4],                         // 449 - Row 5 (vertically centered)
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: GRID.ROW_H[4] + GRID.ROW_GUTTER + GRID.ROW_H[5] + GRID.ROW_GUTTER + GRID.ROW_H[6], // 79+17+85+17+79 = 277
+        x: GRID.CONTENT_X,                        // 80px
+        y: GRID.ROW_Y[4],                         // 450px - Row 5 (vertically centered)
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: GRID.ROW_END[6] - GRID.ROW_Y[4],  // 730 - 450 = 280px (Rows 5-7)
       },
     ],
   },
@@ -340,39 +354,39 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
   {
     id: 'three-content',
     name: 'Three Content',
-    description: 'Title with three columns (7-8-7 grid split)',
+    description: 'Title with three columns (7-7-8 grid split)',
     placeholders: [
       {
         id: 'title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: TITLE_Y,                               // 69
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: TITLE_HEIGHT,                     // 165
+        x: GRID.CONTENT_X,                        // 80px
+        y: TITLE_Y,                               // 72px
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: TITLE_HEIGHT,                     // 164px
       },
       {
         id: 'content-left',
         type: 'body',
-        x: GRID.CONTENT_X,                        // 79
-        y: CONTENT_Y,                             // 251
-        width: GRID.THREE_COL_7,                  // 551 (7 columns)
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.CONTENT_X,                        // 80px (col 1)
+        y: CONTENT_Y,                             // 252px
+        width: GRID.THREE_COL_NARROW,             // 550px (cols 1-7)
+        height: CONTENT_HEIGHT,                   // 756px
       },
       {
         id: 'content-center',
         type: 'body',
-        x: GRID.CONTENT_X + GRID.THREE_COL_7 + GRID.HALF_GAP, // 79 + 551 + 14 = 644
-        y: CONTENT_Y,                             // 251
-        width: GRID.THREE_COL_8,                  // 632 (8 columns)
-        height: CONTENT_HEIGHT,                   // 755
+        x: 644,                                   // Col 8 start (from guide)
+        y: CONTENT_Y,                             // 252px
+        width: GRID.THREE_COL_NARROW,             // 550px (cols 8-14)
+        height: CONTENT_HEIGHT,                   // 756px
       },
       {
         id: 'content-right',
         type: 'body',
-        x: GRID.CONTENT_X + GRID.THREE_COL_7 + GRID.HALF_GAP + GRID.THREE_COL_8 + GRID.HALF_GAP, // 79 + 551 + 14 + 632 + 14 = 1290
-        y: CONTENT_Y,                             // 251
-        width: GRID.THREE_COL_7,                  // 551 (7 columns)
-        height: CONTENT_HEIGHT,                   // 755
+        x: 1210,                                  // Col 15 start (from guide)
+        y: CONTENT_Y,                             // 252px
+        width: GRID.THREE_COL_WIDE,               // 630px (cols 15-22)
+        height: CONTENT_HEIGHT,                   // 756px
       },
     ],
   },
@@ -384,34 +398,34 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: TITLE_Y,                               // 69
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: TITLE_HEIGHT,                     // 165
+        x: GRID.CONTENT_X,                        // 80px
+        y: TITLE_Y,                               // 72px
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: TITLE_HEIGHT,                     // 164px
       },
       {
         id: 'content-main',
         type: 'body',
-        x: GRID.CONTENT_X,                        // 79
-        y: CONTENT_Y,                             // 251
-        width: GRID.HALF_WIDTH,                   // 874
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.CONTENT_X,                        // 80px
+        y: CONTENT_Y,                             // 252px
+        width: GRID.HALF_WIDTH,                   // 872px
+        height: CONTENT_HEIGHT,                   // 756px
       },
       {
         id: 'sidebar-top',
         type: 'body',
-        x: GRID.CONTENT_X + GRID.HALF_WIDTH + GRID.HALF_GAP, // 967
-        y: CONTENT_Y,                             // 251
-        width: GRID.HALF_WIDTH,                   // 874
-        height: Math.round((CONTENT_HEIGHT - GRID.ROW_GUTTER) / 2), // (755 - 17) / 2 = 369
+        x: GRID.HALF_RIGHT_START,                 // 968px
+        y: CONTENT_Y,                             // 252px
+        width: GRID.HALF_WIDTH,                   // 872px
+        height: Math.round((CONTENT_HEIGHT - GRID.GUTTER) / 2), // (756 - 16) / 2 = 370px
       },
       {
         id: 'sidebar-bottom',
         type: 'body',
-        x: GRID.CONTENT_X + GRID.HALF_WIDTH + GRID.HALF_GAP, // 967
-        y: CONTENT_Y + Math.round((CONTENT_HEIGHT - GRID.ROW_GUTTER) / 2) + GRID.ROW_GUTTER, // 251 + 369 + 17 = 637
-        width: GRID.HALF_WIDTH,                   // 874
-        height: Math.round((CONTENT_HEIGHT - GRID.ROW_GUTTER) / 2), // 369
+        x: GRID.HALF_RIGHT_START,                 // 968px
+        y: CONTENT_Y + Math.round((CONTENT_HEIGHT - GRID.GUTTER) / 2) + GRID.GUTTER, // 252 + 370 + 16 = 638px
+        width: GRID.HALF_WIDTH,                   // 872px
+        height: Math.round((CONTENT_HEIGHT - GRID.GUTTER) / 2), // 370px
       },
     ],
   },
@@ -423,26 +437,26 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'title',
         type: 'title',
-        x: GRID.CONTENT_X,                        // 79
-        y: TITLE_Y,                               // 69
-        width: GRID.CONTENT_WIDTH,                // 1762
-        height: TITLE_HEIGHT,                     // 165
+        x: GRID.CONTENT_X,                        // 80px
+        y: TITLE_Y,                               // 72px
+        width: GRID.CONTENT_WIDTH,                // 1760px
+        height: TITLE_HEIGHT,                     // 164px
       },
       {
         id: 'sidebar',
         type: 'body',
-        x: GRID.CONTENT_X,                        // 79
-        y: CONTENT_Y,                             // 251
-        width: Math.round(5 * GRID.COLUMN_WIDTH + 4 * GRID.COL_GUTTER), // 5*67 + 4*13.71 ≈ 390
-        height: CONTENT_HEIGHT,                   // 755
+        x: GRID.CONTENT_X,                        // 80px
+        y: CONTENT_Y,                             // 252px
+        width: 388,                               // 5 cols: 80 to 468 (from guides)
+        height: CONTENT_HEIGHT,                   // 756px
       },
       {
         id: 'content-main',
         type: 'body',
-        x: GRID.CONTENT_X + Math.round(5 * GRID.COLUMN_WIDTH + 4 * GRID.COL_GUTTER) + Math.round(GRID.COL_GUTTER), // 79 + 390 + 14 = 483
-        y: CONTENT_Y,                             // 251
-        width: GRID.CONTENT_WIDTH - Math.round(5 * GRID.COLUMN_WIDTH + 4 * GRID.COL_GUTTER) - Math.round(GRID.COL_GUTTER), // 1762 - 390 - 14 = 1358
-        height: CONTENT_HEIGHT,                   // 755
+        x: 484,                                   // Col 6 start (from guide)
+        y: CONTENT_Y,                             // 252px
+        width: 1356,                              // 1840 - 484 = 1356px
+        height: CONTENT_HEIGHT,                   // 756px
       },
     ],
   },
