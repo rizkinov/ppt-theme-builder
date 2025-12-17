@@ -450,97 +450,113 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
 
 /**
  * Generate CBRE Official Grid Guides for 16:9 (1920x1080)
- * Based on official CBRE PowerPoint template (33.87 × 19.05 cm)
+ * EXACT positions extracted from official CBRE PPT.pptx template
  * 
- * Structure:
- * - 24 columns: 1 left margin + 22 grid + 1 right margin
- * - 12 rows: 1 top margin + 10 grid + 1 bottom margin
- * 
- * Margins (from official template):
- * - Left/Right margin: 1.4 cm = 79px
- * - Top/Bottom margin: 0.93 cm = 53px
- * 
- * Gutter rules:
- * - Columns: NO gutter between margin and content
- * - Rows: YES gutter between margin and content
+ * These pixel values are derived from the p15:sldGuideLst in slideMaster1.xml
+ * using the formula: pixels = pos / 4 (where pos is in 1/8 points)
  */
 function generateCBREGridGuides16x9(): Array<{ id: string; orientation: 'horizontal' | 'vertical'; position: number }> {
-  const guides: Array<{ id: string; orientation: 'horizontal' | 'vertical'; position: number }> = [];
-
-  // === MARGIN CONSTANTS (from official template) ===
-  const MARGIN_LEFT_RIGHT = 79;  // 1.4 cm × 56.68 px/cm
-  const MARGIN_TOP = 52;         // 0.92 cm × 56.68 px/cm
-  const MARGIN_BOTTOM = 58;      // 1.02 cm × 56.68 px/cm
-
-  // === COLUMN CONSTANTS (calculated for exact 1920px total) ===
-  // 2×79 + 22×COLUMN + 21×GUTTER = 1920
-  // With COLUMN = 67, GUTTER = (1762 - 1474) / 21 = 13.714
-  const COLUMN_WIDTH = 67;
-  const COL_GUTTER = 288 / 21;  // = 13.714... (exact for 1920px total)
-
-  // === ROW CONSTANTS (exact measurements from official template) ===
-  const ROW_GUTTER = 17;  // 0.3 cm × 56.68 px/cm
-
-  // Individual row heights in order (top to bottom)
-  const ROW_HEIGHTS = [
-    69,   // Row 1: 1.21 cm
-    79,   // Row 2: 1.4 cm
-    85,   // Row 3: 1.5 cm
-    79,   // Row 4: 1.4 cm
-    79,   // Row 5: 1.4 cm
-    85,   // Row 6: 1.5 cm
-    79,   // Row 7: 1.4 cm
-    79,   // Row 8: 1.4 cm
-    85,   // Row 9: 1.5 cm
-    65,   // Row 10: 1.15 cm
+  // EXACT vertical guide positions from CBRE PPT.pptx (in pixels)
+  // Extracted from p15:guide elements without orient attribute
+  const verticalPositions = [
+    0,     // Left edge
+    64,    // Content margin start
+    80,    // Content margin end / Col 1 start
+    144,   // Col 1 end
+    160,   // Col 2 start
+    226,   // Col 2 end
+    242,   // Col 3 start
+    306,   // Col 3 end
+    322,   // Col 4 start
+    388,   // Col 4 end
+    402,   // Col 5 start
+    468,   // Col 5 end
+    484,   // Col 6 start
+    548,   // Col 6 end
+    564,   // Col 7 start
+    630,   // Col 7 end
+    644,   // Col 8 start
+    710,   // Col 8 end
+    726,   // Col 9 start
+    790,   // Col 9 end
+    806,   // Col 10 start
+    872,   // Col 10 end
+    888,   // Col 11 start
+    952,   // Col 11 end
+    968,   // Col 12 start (center)
+    1032,  // Col 12 end
+    1048,  // Col 13 start
+    1114,  // Col 13 end
+    1130,  // Col 14 start
+    1194,  // Col 14 end
+    1210,  // Col 15 start
+    1274,  // Col 15 end
+    1290,  // Col 16 start
+    1356,  // Col 16 end
+    1372,  // Col 17 start
+    1436,  // Col 17 end
+    1452,  // Col 18 start
+    1516,  // Col 18 end
+    1532,  // Col 19 start
+    1598,  // Col 19 end
+    1614,  // Col 20 start
+    1678,  // Col 20 end
+    1694,  // Col 21 start
+    1758,  // Col 21 end
+    1774,  // Col 22 start
+    1840,  // Col 22 end
+    1856,  // Content margin start
+    1920,  // Right edge
   ];
 
-  // === VERTICAL GUIDES ===
-  let x = 0;
+  // EXACT horizontal guide positions from CBRE PPT.pptx (in pixels)
+  // Extracted from p15:guide elements with orient="horz"
+  const horizontalPositions = [
+    0,     // Top edge
+    56,    // Top margin start
+    72,    // Top margin end
+    138,   // Row 1 end
+    154,   // Row 2 start
+    236,   // Row 2 end
+    252,   // Row 3 start
+    334,   // Row 3 end
+    350,   // Row 4 start
+    434,   // Row 4 end
+    450,   // Row 5 start
+    532,   // Row 5 end
+    548,   // Row 6 start
+    630,   // Row 6 end
+    646,   // Row 7 start
+    730,   // Row 7 end
+    746,   // Row 8 start
+    828,   // Row 8 end
+    844,   // Row 9 start
+    926,   // Row 9 end
+    942,   // Row 10 start
+    1008,  // Row 10 end / Bottom margin
+    1024,  // Bottom safe zone
+    1080,  // Bottom edge
+  ];
 
-  // Left margin
-  guides.push({ id: 'v-margin-left-start', orientation: 'vertical', position: 0 });
-  x = MARGIN_LEFT_RIGHT;
-  guides.push({ id: 'v-margin-left-end', orientation: 'vertical', position: x });
+  const guides: Array<{ id: string; orientation: 'horizontal' | 'vertical'; position: number }> = [];
 
-  // 22 content columns + 21 gutters (no gutter before right margin)
-  for (let col = 0; col < 22; col++) {
-    guides.push({ id: `v-col-${col}-start`, orientation: 'vertical', position: Math.round(x) });
-    x += COLUMN_WIDTH;
-    guides.push({ id: `v-col-${col}-end`, orientation: 'vertical', position: Math.round(x) });
-    if (col < 21) {
-      x += COL_GUTTER;  // Only add gutter between columns, not after last
-    }
-  }
+  // Add vertical guides
+  verticalPositions.forEach((pos, index) => {
+    guides.push({
+      id: `v-cbre-${index}`,
+      orientation: 'vertical',
+      position: pos,
+    });
+  });
 
-  // Right margin (starts immediately after last column, no gutter)
-  guides.push({ id: 'v-margin-right-start', orientation: 'vertical', position: Math.round(x) });
-  x += MARGIN_LEFT_RIGHT;
-  guides.push({ id: 'v-margin-right-end', orientation: 'vertical', position: Math.round(x) });
-
-  // === HORIZONTAL GUIDES (10 rows with gutters) ===
-  let y = 0;
-
-  // Top margin
-  guides.push({ id: 'h-margin-top-start', orientation: 'horizontal', position: 0 });
-  y = MARGIN_TOP;
-  guides.push({ id: 'h-margin-top-end', orientation: 'horizontal', position: y });
-  y += ROW_GUTTER;
-
-  // 10 content rows with gutters between
-  for (let row = 0; row < 10; row++) {
-    guides.push({ id: `h-row-${row + 1}-start`, orientation: 'horizontal', position: y });
-    y += ROW_HEIGHTS[row];
-    guides.push({ id: `h-row-${row + 1}-end`, orientation: 'horizontal', position: y });
-    if (row < 9) {
-      y += ROW_GUTTER;
-    }
-  }
-  y += ROW_GUTTER;
-
-  // Bottom margin
-  guides.push({ id: 'h-margin-bottom-start', orientation: 'horizontal', position: 1080 - MARGIN_BOTTOM });
-  guides.push({ id: 'h-margin-bottom-end', orientation: 'horizontal', position: 1080 });
+  // Add horizontal guides
+  horizontalPositions.forEach((pos, index) => {
+    guides.push({
+      id: `h-cbre-${index}`,
+      orientation: 'horizontal',
+      position: pos,
+    });
+  });
 
   return guides;
 }
