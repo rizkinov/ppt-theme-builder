@@ -54,16 +54,10 @@ export function generatePresPropsXml(): string {
 // Generate viewProps.xml with guides visibility setting
 // Note: CBRE PPT.pptx has showGuides="1" but empty <p:guideLst/> because
 // the actual guides are stored in slideMaster1.xml under p15:sldGuideLst
-export function generateViewPropsXml(guides: OOXMLGuide[]): string {
-  // Include guides in viewProps for older PowerPoint compatibility
-  // But primary guides are in the slide master extension (p15:sldGuideLst)
-  const guideElements = guides.length > 0
-    ? guides.map(g => `<p:guide orient="${g.orient}" pos="${g.pos}"/>`).join('\n        ')
-    : '';
-
-  const guideLst = guideElements
-    ? `<p:guideLst>\n        ${guideElements}\n      </p:guideLst>`
-    : '<p:guideLst/>';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function generateViewPropsXml(_guides: OOXMLGuide[]): string {
+  // Guides are stored in the slide master extension (p15:sldGuideLst)
+  // viewProps only needs showGuides="1" to enable visibility
 
   return `${xmlDeclaration()}<p:viewPr xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" lastView="sldThumbnailView">
   <p:normalViewPr horzBarState="maximized">
@@ -79,7 +73,7 @@ export function generateViewPropsXml(guides: OOXMLGuide[]): string {
         </p:scale>
         <p:origin x="0" y="0"/>
       </p:cViewPr>
-      ${guideLst}
+      <p:guideLst/>
     </p:cSldViewPr>
   </p:slideViewPr>
   <p:notesTextViewPr>
