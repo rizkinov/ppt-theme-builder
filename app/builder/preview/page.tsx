@@ -9,6 +9,8 @@ import { CBRECard, CBRECardHeader, CBRECardTitle, CBRECardContent } from '@/src/
 import { Checkbox } from '@/src/components/cbre/CBRECheckbox';
 import { Label } from '@/src/components/ui/label';
 import { defaultLayoutTemplates } from '@/src/lib/builder/defaults';
+import { FontLoader } from '@/src/components/builder/FontLoader';
+import { TextStyle } from '@/src/lib/builder/types';
 
 export default function PreviewPage() {
   const { config } = useBuilderStore();
@@ -20,6 +22,7 @@ export default function PreviewPage() {
 
   return (
     <div className="min-h-screen bg-lighter-grey">
+      <FontLoader />
       <PageHeader
         title="Preview"
         description="See how your PowerPoint template will look with the current settings."
@@ -87,26 +90,35 @@ export default function PreviewPage() {
           </CBRECardHeader>
           <CBRECardContent>
             <div className="space-y-4 p-6 bg-white border border-light-grey">
-              {Object.entries(config.typography).map(([key, style]) => (
-                <div key={key} className="space-y-1">
-                  <p className="text-xs text-dark-grey font-calibre opacity-75 capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}:
-                  </p>
-                  <p
-                    style={{
-                      fontFamily: style.fontFamily === 'heading' ? 'var(--font-financier-display)' : 'var(--font-calibre)',
-                      fontSize: `${style.fontSize}pt`,
-                      fontWeight: style.fontWeight,
-                      lineHeight: style.lineHeight,
-                      letterSpacing: `${style.letterSpacing}em`,
-                      color: style.color,
-                      textTransform: style.textTransform,
-                    }}
-                  >
-                    The quick brown fox jumps over the lazy dog
-                  </p>
-                </div>
-              ))}
+              {(Object.entries(config.typography) as [string, TextStyle][]).map(([key, style]) => {
+                const fontAsset = config.fontLibrary.find(f => f.id === style.fontId);
+                const fontFamily = fontAsset ? fontAsset.family : 'var(--font-calibre)';
+                // Resolve color: use theme color if colorRef is set, otherwise use color
+                const displayColor = style.colorRef
+                  ? config.theme.colors[style.colorRef]
+                  : style.color;
+
+                return (
+                  <div key={key} className="space-y-1">
+                    <p className="text-xs text-dark-grey font-calibre opacity-75 capitalize">
+                      {key.replace(/([A-Z])/g, ' $1').trim()}:
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: fontFamily,
+                        fontSize: `${style.fontSize}pt`,
+                        fontWeight: style.fontWeight,
+                        lineHeight: style.lineHeight,
+                        letterSpacing: `${style.letterSpacing}em`,
+                        color: displayColor,
+                        textTransform: style.textTransform,
+                      }}
+                    >
+                      The quick brown fox jumps over the lazy dog
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </CBRECardContent>
         </CBRECard>
@@ -175,10 +187,10 @@ export default function PreviewPage() {
               <div>
                 <p className="text-sm text-dark-grey font-calibre opacity-75">Fonts</p>
                 <p className="text-sm font-financier text-cbre-green mt-1">
-                  Heading: {config.fonts.heading.family}
+                  Heading: {config.fontLibrary.find(f => f.id === config.typography.heading.fontId)?.family || 'Unknown'}
                 </p>
                 <p className="text-sm font-calibre text-cbre-green">
-                  Body: {config.fonts.body.family}
+                  Body: {config.fontLibrary.find(f => f.id === config.typography.bodyLarge.fontId)?.family || 'Unknown'}
                 </p>
               </div>
             </div>

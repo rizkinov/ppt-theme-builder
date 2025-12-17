@@ -8,7 +8,7 @@ export default function BuilderLayout({
   return (
     <div className="flex min-h-screen bg-white">
       <BuilderSidebar />
-      <main className="flex-1 overflow-x-hidden">
+      <main className="flex-1 ml-64 overflow-x-hidden">
         {children}
       </main>
     </div>

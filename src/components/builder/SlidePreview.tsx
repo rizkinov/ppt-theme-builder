@@ -67,13 +67,21 @@ export function SlidePreview({
     // Using the average of X and Y scaling to keep it somewhat consistent
     const layoutFontScale = (layoutScaleX + layoutScaleY) / 2;
 
+    const fontAsset = config.fontLibrary.find(f => f.id === style.fontId);
+    const fontFamily = fontAsset ? fontAsset.family : 'var(--font-calibre)';
+
+    // Resolve color: use theme color if colorRef is set, otherwise use color
+    const displayColor = style.colorRef
+      ? config.theme.colors[style.colorRef]
+      : style.color;
+
     return {
-      fontFamily: style.fontFamily === 'heading' ? 'var(--font-financier-display)' : 'var(--font-calibre)',
+      fontFamily: fontFamily,
       fontSize: `${style.fontSize * scale * layoutFontScale}pt`,
       fontWeight: style.fontWeight,
       lineHeight: style.lineHeight,
       letterSpacing: `${style.letterSpacing}em`,
-      color: style.color,
+      color: displayColor,
       textTransform: style.textTransform,
     };
   };

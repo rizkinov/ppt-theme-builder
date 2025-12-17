@@ -73,7 +73,7 @@ export function BuilderSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-light-grey h-screen sticky top-0 flex flex-col">
+    <aside className="w-64 bg-white border-r border-light-grey h-screen fixed top-0 left-0 flex flex-col z-40">
       {/* Header */}
       <div className="p-6 border-b border-light-grey">
         <Link href="/builder/theme" className="flex items-center gap-3 group">

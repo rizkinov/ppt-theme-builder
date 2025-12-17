@@ -17,16 +17,16 @@ export default function GuidesPage() {
   // Calculate scale to fit within a max width of ~500px while maintaining aspect ratio
   const maxPreviewWidth = 500;
   const aspectRatio = config.slideDimensions.width / config.slideDimensions.height;
-  
+
   // For pixel-based dimensions (16:9), use pixel values
   // For mm-based dimensions (A4), convert to a reasonable pixel equivalent
-  const slideWidthPx = config.slideDimensions.unit === 'mm' 
+  const slideWidthPx = config.slideDimensions.unit === 'mm'
     ? config.slideDimensions.width * 3.78 // ~96 DPI conversion
     : config.slideDimensions.width;
   const slideHeightPx = config.slideDimensions.unit === 'mm'
     ? config.slideDimensions.height * 3.78
     : config.slideDimensions.height;
-  
+
   const scale = maxPreviewWidth / slideWidthPx;
   const canvasWidth = slideWidthPx * scale;
   const canvasHeight = slideHeightPx * scale;
@@ -239,76 +239,88 @@ export default function GuidesPage() {
 
               {/* CBRE Standard Grid */}
               <div className="space-y-2 pt-3 border-t border-light-grey">
-                <Label className="text-dark-grey font-calibre">CBRE Grid</Label>
+                <Label className="text-dark-grey font-calibre">CBRE Official Grid</Label>
                 <p className="text-xs text-dark-grey font-calibre opacity-75">
-                  24-column grid with 9 content rows
+                  22 columns (6 margin + 16 content), 10 rows (2+6+2)
                 </p>
                 <CBREButton
                   variant="primary"
                   onClick={() => {
-                    // CBRE Standard Grid for 16:9 slides
-                    // Based on CBRE specifications (proportional ratios):
-                    // Column:Gutter = 1.14:0.3 = 3.8:1
-                    // Header:RowGutter = 0.98:0.3 = 3.27:1
-                    // Row:RowGutter = 1.14:0.3 = 3.8:1
-                    
-                    // Calculate directly in pixels to span full slide
-                    const width = slideWidthPx;
-                    const height = slideHeightPx;
-                    
-                    // VERTICAL: 24 columns + 23 gutters, ratio 3.8:1
-                    // 24C + 23G = width, where C = 3.8G
-                    // 24(3.8G) + 23G = width
-                    // 91.2G + 23G = width
-                    // 114.2G = width
-                    const vGutter = width / 114.2;
-                    const colWidth = vGutter * 3.8;
-                    
-                    // HORIZONTAL: header + gutter + 9 rows + 8 row-gutters + gutter + footer
-                    // header = footer = 0.98 ratio unit, row = 1.14 ratio unit, gutter = 0.3 ratio unit
-                    // Total ratio units = 0.98 + 0.3 + (9 × 1.14) + (8 × 0.3) + 0.3 + 0.98
-                    //                   = 0.98 + 0.3 + 10.26 + 2.4 + 0.3 + 0.98 = 15.22
-                    const ratioUnit = height / 15.22;
-                    const headerHeight = 0.98 * ratioUnit;
-                    const rowHeight = 1.14 * ratioUnit;
-                    const rowGutter = 0.3 * ratioUnit;
-                    
-                    // VERTICAL GUIDES (24 columns + gutters)
-                    let x = 0;
-                    for (let col = 0; col < 24; col++) {
-                      addGuide('vertical', Math.round(x));           // Start of column
-                      x += colWidth;
-                      addGuide('vertical', Math.round(x));           // End of column
-                      if (col < 23) {
-                        x += vGutter;                                 // Add gutter
-                      }
+                    // Clear existing guides first
+                    clearGuides();
+
+                    /**
+                     * CBRE Official Grid for 16:9 slides (33.87 × 19.05 cm)
+                     * 
+                     * Margins:
+                     * - Left/Right: 1.4 cm = 79px
+                     * - Top: 0.92 cm = 52px
+                     * - Bottom: 1.02 cm = 58px
+                     * - Row gutter: 0.3 cm = 17px
+                     */
+
+                    // Margin constants
+                    const MARGIN_LEFT_RIGHT = 79;
+                    const MARGIN_TOP = 52;
+                    const MARGIN_BOTTOM = 58;
+
+                    // Column constants (calculated for exact 1920px)
+                    const COLUMN_WIDTH = 67;
+                    const COL_GUTTER = 288 / 21;  // = 13.714 (exact)
+
+                    // Row constants (exact from official template)
+                    const ROW_GUTTER = 17;  // 0.3 cm
+                    const ROW_HEIGHTS = [
+                      69,   // Row 1: 1.21 cm
+                      79,   // Row 2: 1.4 cm
+                      85,   // Row 3: 1.5 cm
+                      79,   // Row 4: 1.4 cm
+                      79,   // Row 5: 1.4 cm
+                      85,   // Row 6: 1.5 cm
+                      79,   // Row 7: 1.4 cm
+                      79,   // Row 8: 1.4 cm
+                      85,   // Row 9: 1.5 cm
+                      65,   // Row 10: 1.15 cm
+                    ];
+
+                    // VERTICAL GUIDES
+                    // Left margin
+                    addGuide('vertical', 0);
+                    addGuide('vertical', MARGIN_LEFT_RIGHT);
+
+                    // 22 content columns + 21 gutters (no gutter before right margin)
+                    let x = MARGIN_LEFT_RIGHT;
+                    for (let col = 0; col < 22; col++) {
+                      addGuide('vertical', Math.round(x));
+                      x += COLUMN_WIDTH;
+                      addGuide('vertical', Math.round(x));
+                      if (col < 21) x += COL_GUTTER;  // Only gutter between columns
                     }
-                    
+
+                    // Right margin (starts immediately after last column)
+                    addGuide('vertical', Math.round(x));
+                    x += MARGIN_LEFT_RIGHT;
+                    addGuide('vertical', Math.round(x));
+
                     // HORIZONTAL GUIDES
-                    let y = 0;
-                    
-                    // Top header zone: 0.98 + 0.3 = 1.28 ratio units
-                    addGuide('horizontal', Math.round(y));           // Top edge (0)
-                    y += headerHeight;                                // 0.98
-                    addGuide('horizontal', Math.round(y));           // End of header
-                    y += rowGutter;                                   // 0.3 gutter
-                    addGuide('horizontal', Math.round(y));           // Start of content
-                    
-                    // 9 content rows with 8 gutters between
-                    for (let row = 0; row < 9; row++) {
-                      y += rowHeight;                                 // 1.14 row
-                      addGuide('horizontal', Math.round(y));         // End of row
-                      if (row < 8) {
-                        y += rowGutter;                               // 0.3 gutter
-                        addGuide('horizontal', Math.round(y));       // Start of next row
-                      }
+                    // Top margin
+                    addGuide('horizontal', 0);
+                    addGuide('horizontal', MARGIN_TOP);
+
+                    let y = MARGIN_TOP + ROW_GUTTER;
+
+                    // 10 content rows with gutters between
+                    for (let row = 0; row < 10; row++) {
+                      addGuide('horizontal', y);
+                      y += ROW_HEIGHTS[row];
+                      addGuide('horizontal', y);
+                      if (row < 9) y += ROW_GUTTER;
                     }
-                    
-                    // Bottom footer zone: 0.3 + 0.98 = 1.28 ratio units
-                    y += rowGutter;                                   // 0.3 gutter
-                    addGuide('horizontal', Math.round(y));
-                    y += headerHeight;                                // 0.98 footer
-                    addGuide('horizontal', Math.round(y));           // Bottom edge
+                    y += ROW_GUTTER;
+
+                    // Bottom margin
+                    addGuide('horizontal', 1080 - MARGIN_BOTTOM);
+                    addGuide('horizontal', 1080);
                   }}
                   size="sm"
                   className="w-full"

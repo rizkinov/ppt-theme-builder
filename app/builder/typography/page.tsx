@@ -9,6 +9,9 @@ import { TextStyleEditor } from '@/src/components/builder/TextStyleEditor';
 import { useBuilderStore } from '@/src/lib/builder/store';
 import { CBRECard, CBRECardHeader, CBRECardTitle, CBRECardContent } from '@/src/components/cbre/CBRECard';
 import { CBRETabs, CBRETabsList, CBRETabsTrigger, CBRETabsContent } from '@/src/components/cbre/CBRETabs';
+import { TypeScaleGenerator } from '@/src/components/builder/TypeScaleGenerator';
+import { LineSpacingControl } from '@/src/components/builder/LineSpacingControl';
+import { FontLoader } from '@/src/components/builder/FontLoader';
 
 const textStyles = [
   { key: 'heading' as const, label: 'Heading', description: 'Main titles and headings (H1)' },
@@ -25,6 +28,7 @@ export default function TypographyPage() {
 
   return (
     <div className="min-h-screen bg-lighter-grey">
+      <FontLoader />
       <PageHeader
         title="Typography"
         description="Upload custom fonts and define text styles for your PowerPoint template."
@@ -36,18 +40,20 @@ export default function TypographyPage() {
         <CBRECard variant="outline">
           <CBRECardContent className="py-4">
             <p className="text-sm font-calibre text-dark-grey">
-              <strong>Font System:</strong> Upload your brand fonts (TTF/OTF) and they&apos;ll be bundled with your template.
-              Users must install these fonts before using the template to ensure proper rendering in PowerPoint.
+              <strong>Workflow:</strong> Upload your fonts first, then set a type scale for harmonious sizes, and finally fine-tune individual styles as needed.
             </p>
           </CBRECardContent>
         </CBRECard>
 
-        {/* Font Manager Section */}
+        {/* Step 1: Font Library */}
         <CBRECard>
           <CBRECardHeader>
-            <CBRECardTitle>Font Library</CBRECardTitle>
+            <div className="flex items-center gap-2">
+              <span style={{ backgroundColor: '#003F2D' }} className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold">1</span>
+              <CBRECardTitle>Font Library</CBRECardTitle>
+            </div>
             <p className="text-sm text-dark-grey font-calibre mt-1">
-              Upload and manage your font files.
+              Upload and manage your brand font files (TTF/OTF).
             </p>
           </CBRECardHeader>
           <CBRECardContent>
@@ -55,12 +61,21 @@ export default function TypographyPage() {
           </CBRECardContent>
         </CBRECard>
 
-        {/* Text Styles Section */}
+        {/* Step 2a: Global Type Scale */}
+        <TypeScaleGenerator />
+
+        {/* Step 2b: Line Spacing */}
+        <LineSpacingControl />
+
+        {/* Step 4: Text Styles (Fine-tuning) */}
         <CBRECard>
           <CBRECardHeader>
-            <CBRECardTitle>Text Styles</CBRECardTitle>
+            <div className="flex items-center gap-2">
+              <span style={{ backgroundColor: '#003F2D' }} className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold">4</span>
+              <CBRECardTitle>Text Styles</CBRECardTitle>
+            </div>
             <p className="text-sm text-dark-grey font-calibre mt-1">
-              Define 7 text styles that will be used throughout your template
+              Fine-tune each of the 7 text styles used in your template.
             </p>
           </CBRECardHeader>
           <CBRECardContent>
@@ -80,7 +95,9 @@ export default function TypographyPage() {
                     description={style.description}
                     style={config.typography[style.key]}
                     fontLibrary={config.fontLibrary || []}
+                    themeColors={config.theme.colors}
                     onChange={(updates) => updateTextStyle(style.key, updates)}
+                    showPreview={false}
                   />
                 </CBRETabsContent>
               ))}
@@ -88,33 +105,37 @@ export default function TypographyPage() {
           </CBRECardContent>
         </CBRECard>
 
-        {/* All Styles Preview */}
+        {/* Final: Complete Typography Preview */}
         <CBRECard>
           <CBRECardHeader>
-            <CBRECardTitle>Complete Typography Preview</CBRECardTitle>
+            <CBRECardTitle>Live Preview</CBRECardTitle>
             <p className="text-sm text-dark-grey font-calibre mt-1">
-              Preview all text styles together
+              See all your text styles rendered together.
             </p>
           </CBRECardHeader>
           <CBRECardContent>
-            <div className="space-y-4 p-6 bg-white border border-light-grey">
+            <div className="space-y-6 p-6 bg-white border border-light-grey rounded-md">
               {textStyles.map((styleConfig) => {
                 const style = config.typography[styleConfig.key];
                 const fontAsset = (config.fontLibrary || []).find(f => f.id === style.fontId);
+                // Resolve color: use theme color if colorRef is set, otherwise use color
+                const displayColor = style.colorRef
+                  ? config.theme.colors[style.colorRef]
+                  : style.color;
                 return (
                   <div key={styleConfig.key} className="space-y-1">
-                    <p className="text-xs text-dark-grey font-calibre opacity-75">
-                      {styleConfig.label}:
+                    <p className="text-[10px] text-dark-grey font-calibre opacity-60 uppercase tracking-wider">
+                      {styleConfig.label} — {style.fontSize}pt
                     </p>
                     <p
                       style={{
-                        fontFamily: fontAsset ? fontAsset.name : 'sans-serif',
+                        fontFamily: fontAsset ? fontAsset.family : 'sans-serif',
                         fontSize: `${style.fontSize}pt`,
-                        fontWeight: fontAsset ? (fontAsset.weight || 'normal') : 'normal',
-                        fontStyle: fontAsset ? (fontAsset.style || 'normal') : 'normal',
+                        fontWeight: fontAsset?.weight || 'normal',
+                        fontStyle: fontAsset?.style || 'normal',
                         lineHeight: style.lineHeight,
                         letterSpacing: `${style.letterSpacing}em`,
-                        color: style.color,
+                        color: displayColor,
                         textTransform: style.textTransform,
                       }}
                     >

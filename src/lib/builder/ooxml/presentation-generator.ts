@@ -52,8 +52,7 @@ export function generatePresPropsXml(): string {
 }
 
 // Generate viewProps.xml with guides
-// Note: Guides in viewProps.xml cannot be "locked" - this is a PowerPoint limitation
-// Users can move these guides, but they will be positioned correctly on export
+// Note: Guides in viewProps.xml are visible and movable in Normal View
 export function generateViewPropsXml(guides: OOXMLGuide[]): string {
   const guideList = guides.length > 0
     ? `<p:cSldViewPr>

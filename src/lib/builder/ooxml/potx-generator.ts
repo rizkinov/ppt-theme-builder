@@ -142,14 +142,13 @@ export async function generatePOTX(config: POTXConfig): Promise<Blob> {
     // ppt/slideMasters
     const slideMastersFolder = pptFolder.folder('slideMasters');
     if (slideMastersFolder) {
-      // Slide master without guides (guides are in viewProps.xml for correct positioning)
+      // Slide master (guides are in viewProps.xml)
       slideMastersFolder.file('slideMaster1.xml', generateSlideMasterXml(
         slideSize,
         config.typography,
         layoutCount,
         config.fontLibrary,
         config.fonts
-        // Note: Guides removed from slide master - they're in viewProps.xml instead
       ));
 
       // slideMasters/_rels

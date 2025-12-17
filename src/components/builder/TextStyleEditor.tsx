@@ -7,14 +7,31 @@ import { Input } from '@/src/components/ui/input';
 import { CBRESelect } from '@/src/components/cbre/CBRESelect';
 import { SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/src/components/ui/select';
 import { Slider } from '@/src/components/ui/slider';
-import { TextStyle, FontAsset } from '@/src/lib/builder/types';
+import { TextStyle, FontAsset, ThemeColors, ThemeColorKey } from '@/src/lib/builder/types';
 import { cn } from '@/lib/utils';
+
+// Theme color options for the dropdown
+const THEME_COLOR_OPTIONS: { key: ThemeColorKey; label: string }[] = [
+  { key: 'dark1', label: 'Dark 1 (Primary)' },
+  { key: 'dark2', label: 'Dark 2 (Secondary)' },
+  { key: 'light1', label: 'Light 1' },
+  { key: 'light2', label: 'Light 2' },
+  { key: 'accent1', label: 'Accent 1' },
+  { key: 'accent2', label: 'Accent 2' },
+  { key: 'accent3', label: 'Accent 3' },
+  { key: 'accent4', label: 'Accent 4' },
+  { key: 'accent5', label: 'Accent 5' },
+  { key: 'accent6', label: 'Accent 6' },
+  { key: 'hyperlink', label: 'Hyperlink' },
+  { key: 'followedHyperlink', label: 'Followed Hyperlink' },
+];
 
 interface TextStyleEditorProps {
   label: string;
   description?: string;
   style: TextStyle;
   fontLibrary: FontAsset[];
+  themeColors: ThemeColors;
   onChange: (updates: Partial<TextStyle>) => void;
   className?: string;
   showPreview?: boolean;
@@ -25,12 +42,28 @@ export function TextStyleEditor({
   description,
   style,
   fontLibrary,
+  themeColors,
   onChange,
   className,
   showPreview = true,
 }: TextStyleEditorProps) {
 
   const currentFont = fontLibrary.find(f => f.id === style.fontId);
+
+  // Resolve the display color: use theme color if colorRef is set, otherwise use color
+  const displayColor = style.colorRef ? themeColors[style.colorRef] : style.color;
+
+  // Handle color source change (theme vs custom)
+  const handleColorRefChange = (value: string) => {
+    if (value === 'custom') {
+      // Switch to custom color, keep current display color
+      onChange({ colorRef: undefined, color: displayColor });
+    } else {
+      // Switch to theme color
+      const colorRef = value as ThemeColorKey;
+      onChange({ colorRef, color: themeColors[colorRef] });
+    }
+  };
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -48,8 +81,6 @@ export function TextStyleEditor({
             label="Font"
             value={style.fontId || ''}
             onValueChange={(value) => {
-              // Find the font to see if we need to set fallback props?
-              // For now just set the ID.
               onChange({ fontId: value });
             }}
           >
@@ -59,7 +90,13 @@ export function TextStyleEditor({
             <SelectContent>
               {fontLibrary.map((font) => (
                 <SelectItem key={font.id} value={font.id}>
-                  <span style={{ fontFamily: font.name }}>{font.name}</span>
+                  <span style={{
+                    fontFamily: font.family,
+                    fontWeight: font.weight || 400,
+                    fontStyle: font.style || 'normal'
+                  }}>
+                    {font.name}
+                  </span>
                 </SelectItem>
               ))}
               {!fontLibrary.length && <div className="p-2 text-sm text-muted-foreground">No fonts available</div>}
@@ -133,21 +170,52 @@ export function TextStyleEditor({
       {/* Color */}
       <div className="space-y-2">
         <Label className="text-dark-grey font-calibre">Text Color</Label>
-        <div className="flex gap-3 items-center">
-          <input
-            type="color"
-            value={style.color}
-            onChange={(e) => onChange({ color: e.target.value })}
-            className="w-16 h-10 cursor-pointer border-2 border-light-grey hover:border-cbre-green transition-colors"
+        <div className="flex gap-3 items-end">
+          {/* Color swatch preview */}
+          <div
+            className="w-10 h-10 border-2 border-light-grey flex-shrink-0"
+            style={{ backgroundColor: displayColor }}
           />
-          <Input
-            type="text"
-            value={style.color}
-            onChange={(e) => onChange({ color: e.target.value })}
-            placeholder="#000000"
-            maxLength={7}
-            className="font-mono uppercase flex-1"
-          />
+
+          {/* Theme color or Custom selector */}
+          <div className="flex-1">
+            <CBRESelect
+              value={style.colorRef || 'custom'}
+              onValueChange={handleColorRefChange}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {THEME_COLOR_OPTIONS.map((option) => (
+                  <SelectItem key={option.key} value={option.key}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 border border-light-grey"
+                        style={{ backgroundColor: themeColors[option.key] }}
+                      />
+                      <span>{option.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                <SelectItem value="custom">
+                  <span className="text-dark-grey">Custom Color...</span>
+                </SelectItem>
+              </SelectContent>
+            </CBRESelect>
+          </div>
+
+          {/* Custom color input - only show when custom is selected */}
+          {!style.colorRef && (
+            <Input
+              type="text"
+              value={style.color}
+              onChange={(e) => onChange({ color: e.target.value })}
+              placeholder="#000000"
+              maxLength={7}
+              className="font-mono uppercase w-28"
+            />
+          )}
         </div>
       </div>
 
@@ -157,11 +225,11 @@ export function TextStyleEditor({
           <p className="text-xs text-dark-grey font-calibre mb-2">Preview:</p>
           <p
             style={{
-              fontFamily: currentFont.name, // Use the display name which should match the loaded font face
+              fontFamily: currentFont.family,
               fontSize: `${style.fontSize}pt`,
               lineHeight: style.lineHeight,
               letterSpacing: `${style.letterSpacing}em`,
-              color: style.color,
+              color: displayColor,
               textTransform: style.textTransform,
               fontStyle: currentFont.style,
               fontWeight: currentFont.weight || 'normal',
@@ -174,3 +242,4 @@ export function TextStyleEditor({
     </div>
   );
 }
+

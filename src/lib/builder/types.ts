@@ -29,12 +29,16 @@ export interface ThemeColors {
   followedHyperlink: string;
 }
 
+// Theme color keys for referencing dynamic colors
+export type ThemeColorKey = keyof ThemeColors;
+
 export interface TextStyle {
   fontId: string; // ID of the FontAsset
   fontSize: number; // in points
   lineHeight: number; // multiplier (e.g., 1.2)
   letterSpacing: number; // in em (e.g., 0.01)
-  color: string; // hex color
+  color: string; // hex color (fallback or custom)
+  colorRef?: ThemeColorKey; // Optional reference to theme color (takes precedence over color)
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
   // Deprecated properties kept for migration/fallback
   fontWeight?: 300 | 400 | 500 | 600 | 700;
