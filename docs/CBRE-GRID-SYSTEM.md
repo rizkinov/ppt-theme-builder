@@ -117,5 +117,5 @@ const ROW_HEIGHTS = [
 
 ---
 
-*Document updated: December 2024*
+*Document updated: December 2025*
 *Based on official CBRE Grid Guides Buddy*

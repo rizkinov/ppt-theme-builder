@@ -257,7 +257,7 @@ function generateDatePlaceholder(slideSize: OOXMLSlideSize): string {
           <a:p>
             <a:fld id="{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}" type="datetimeFigureOut">
               <a:rPr lang="en-US" smtClean="0"/>
-              <a:t>1/1/2024</a:t>
+              <a:t>1/1/2025</a:t>
             </a:fld>
             <a:endParaRPr lang="en-US"/>
           </a:p>
