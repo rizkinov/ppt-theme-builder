@@ -4,7 +4,7 @@
  */
 
 import { xmlDeclaration, NAMESPACES } from './xml-utils';
-import { OOXMLSlideSize, TypographyConfig, OOXMLFontScheme } from './types';
+import { OOXMLSlideSize, TypographyConfig, OOXMLFontScheme, OOXMLMasterGuide } from './types';
 import { FontAsset } from '../types';
 
 export interface FontUtils {
@@ -18,7 +18,8 @@ export function generateSlideMasterXml(
   typography: TypographyConfig,
   layoutCount: number,
   fontLibrary: FontAsset[],
-  fonts: OOXMLFontScheme
+  fonts: OOXMLFontScheme,
+  masterGuides?: OOXMLMasterGuide[]
 ): string {
   // Helper to resolve font references
   const getFontRefs = (fontId: string) => {
@@ -64,6 +65,11 @@ export function generateSlideMasterXml(
 
   const utils = { getFontRefs, getWeight, getItalic };
 
+  // Generate the extension list with master guides if provided
+  const extLst = masterGuides && masterGuides.length > 0
+    ? generateMasterGuideExtLst(masterGuides)
+    : '';
+
   return `${xmlDeclaration()}<p:sldMaster xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}">
   <p:cSld>
     <p:bg>
@@ -94,7 +100,7 @@ export function generateSlideMasterXml(
   </p:cSld>
   <p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>
   ${generateSlideLayoutIdList(layoutCount)}
-  ${generateTextStyles(typography, fontLibrary, utils)}
+  ${generateTextStyles(typography, fontLibrary, utils)}${extLst}
 </p:sldMaster>`;
 }
 
@@ -357,6 +363,30 @@ function generateSlideNumberPlaceholder(slideSize: OOXMLSlideSize): string {
           </a:p>
         </p:txBody>
       </p:sp>`;
+}
+
+/**
+ * Generate the PowerPoint 2012+ extension list with master slide guides
+ * This matches the format used by CBRE PPT.pptx
+ * Guides are stored in p:extLst > p:ext > p15:sldGuideLst
+ */
+function generateMasterGuideExtLst(guides: OOXMLMasterGuide[]): string {
+  if (!guides || guides.length === 0) return '';
+
+  const guideElements = guides.map(guide => {
+    const orientAttr = guide.orient === 'horz' ? ' orient="horz"' : '';
+    const posAttr = guide.pos !== 0 ? ` pos="${guide.pos}"` : '';
+    const userDrawn = guide.userDrawn !== false ? ' userDrawn="1"' : '';
+
+    return `<p15:guide id="${guide.id}"${orientAttr}${posAttr}${userDrawn}><p15:clr><a:srgbClr val="${guide.color}"/></p15:clr></p15:guide>`;
+  }).join('');
+
+  return `
+  <p:extLst>
+    <p:ext uri="{27BBF7A9-308A-43DC-89C8-2F10F3537804}">
+      <p15:sldGuideLst xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main">${guideElements}</p15:sldGuideLst>
+    </p:ext>
+  </p:extLst>`;
 }
 
 function generateSlideLayoutIdList(layoutCount: number): string {

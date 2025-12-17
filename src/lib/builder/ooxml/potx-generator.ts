@@ -5,7 +5,7 @@
 
 
 import JSZip from 'jszip';
-import { OOXMLThemeColors, OOXMLFontScheme, OOXMLSlideSize, OOXMLGuide, TypographyConfig, SLIDE_SIZES, TextStyleConfig } from './types';
+import { OOXMLThemeColors, OOXMLFontScheme, OOXMLSlideSize, OOXMLGuide, OOXMLMasterGuide, TypographyConfig, SLIDE_SIZES, TextStyleConfig } from './types';
 import { generateThemeXml } from './theme-generator';
 import { generateSlideMasterXml, generateSlideMasterRelsXml } from './slide-master-generator';
 import { generateSlideLayoutXml, generateSlideLayoutRelsXml, getLayoutConfigs } from './slide-layout-generator';
@@ -80,6 +80,17 @@ export async function generatePOTX(config: POTXConfig): Promise<Blob> {
     return true;
   });
 
+  // Convert to CBRE-style master guides (PowerPoint 2012+ format with colors)
+  // CBRE uses orange guides (#F26B43)
+  const CBRE_GUIDE_COLOR = 'F26B43';
+  const masterGuides: OOXMLMasterGuide[] = guides.map((g, index) => ({
+    id: index + 1,
+    orient: g.orient === 'horz' ? 'horz' as const : undefined,
+    pos: g.pos,
+    color: CBRE_GUIDE_COLOR,
+    userDrawn: true,
+  }));
+
   // Get all available layouts and filter based on selection
   const allLayouts = getLayoutConfigs();
 
@@ -142,13 +153,14 @@ export async function generatePOTX(config: POTXConfig): Promise<Blob> {
     // ppt/slideMasters
     const slideMastersFolder = pptFolder.folder('slideMasters');
     if (slideMastersFolder) {
-      // Slide master (guides are in viewProps.xml)
+      // Slide master with CBRE-style colored guides (PowerPoint 2012+ format)
       slideMastersFolder.file('slideMaster1.xml', generateSlideMasterXml(
         slideSize,
         config.typography,
         layoutCount,
         config.fontLibrary,
-        config.fonts
+        config.fonts,
+        masterGuides
       ));
 
       // slideMasters/_rels

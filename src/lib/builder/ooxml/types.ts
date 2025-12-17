@@ -48,6 +48,18 @@ export interface OOXMLGuide {
   pos: number;  // Offset from center in points (12700 EMUs per point). Negative = left/top, Positive = right/bottom
 }
 
+/**
+ * Master slide guide (PowerPoint 2012+ format with color support)
+ * Used in slideMaster1.xml under p:extLst with p15:sldGuideLst
+ */
+export interface OOXMLMasterGuide {
+  id: number;           // Unique guide ID
+  orient?: 'horz';      // 'horz' for horizontal, omit for vertical
+  pos: number;          // Position in 1/8 points from top-left corner
+  color: string;        // RGB hex color (e.g., "F26B43" for CBRE orange)
+  userDrawn?: boolean;  // Whether this is a user-drawn guide
+}
+
 // 1 inch = 914400 EMUs
 // 1 point = 12700 EMUs
 // 1 pixel at 96 DPI = 9525 EMUs
