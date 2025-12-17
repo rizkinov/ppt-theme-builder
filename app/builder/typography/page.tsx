@@ -129,7 +129,7 @@ export default function TypographyPage() {
                     </p>
                     <p
                       style={{
-                        fontFamily: fontAsset ? fontAsset.family : 'sans-serif',
+                        fontFamily: fontAsset ? `Preview ${fontAsset.family}` : 'sans-serif',
                         fontSize: `${style.fontSize}pt`,
                         fontWeight: fontAsset?.weight || 'normal',
                         fontStyle: fontAsset?.style || 'normal',

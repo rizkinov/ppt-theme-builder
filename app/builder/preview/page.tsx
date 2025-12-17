@@ -92,7 +92,7 @@ export default function PreviewPage() {
             <div className="space-y-4 p-6 bg-white border border-light-grey">
               {(Object.entries(config.typography) as [string, TextStyle][]).map(([key, style]) => {
                 const fontAsset = config.fontLibrary.find(f => f.id === style.fontId);
-                const fontFamily = fontAsset ? fontAsset.family : 'var(--font-calibre)';
+                const fontFamily = fontAsset ? `Preview ${fontAsset.family}` : 'var(--font-calibre)';
                 // Resolve color: use theme color if colorRef is set, otherwise use color
                 const displayColor = style.colorRef
                   ? config.theme.colors[style.colorRef]

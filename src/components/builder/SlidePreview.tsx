@@ -68,7 +68,8 @@ export function SlidePreview({
     const layoutFontScale = (layoutScaleX + layoutScaleY) / 2;
 
     const fontAsset = config.fontLibrary.find(f => f.id === style.fontId);
-    const fontFamily = fontAsset ? fontAsset.family : 'var(--font-calibre)';
+    // Use Preview prefix to match FontLoader's isolated namespace
+    const fontFamily = fontAsset ? `Preview ${fontAsset.family}` : 'var(--font-calibre)';
 
     // Resolve color: use theme color if colorRef is set, otherwise use color
     const displayColor = style.colorRef

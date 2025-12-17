@@ -91,7 +91,7 @@ export function TextStyleEditor({
               {fontLibrary.map((font) => (
                 <SelectItem key={font.id} value={font.id}>
                   <span style={{
-                    fontFamily: font.family,
+                    fontFamily: `Preview ${font.family}`,
                     fontWeight: font.weight || 400,
                     fontStyle: font.style || 'normal'
                   }}>
@@ -225,7 +225,7 @@ export function TextStyleEditor({
           <p className="text-xs text-dark-grey font-calibre mb-2">Preview:</p>
           <p
             style={{
-              fontFamily: currentFont.family,
+              fontFamily: `Preview ${currentFont.family}`,
               fontSize: `${style.fontSize}pt`,
               lineHeight: style.lineHeight,
               letterSpacing: `${style.letterSpacing}em`,

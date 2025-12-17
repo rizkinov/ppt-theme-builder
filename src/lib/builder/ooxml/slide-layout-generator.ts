@@ -183,6 +183,24 @@ interface FontUtils {
   getItalic: (fontId: string) => string;
 }
 
+function getColorSchemeRef(ref?: string): string {
+  switch (ref) {
+    case 'dark1': return 'tx1';
+    case 'dark2': return 'tx2';
+    case 'light1': return 'bg1'; // mapped to lt1
+    case 'light2': return 'bg2'; // mapped to lt2
+    case 'accent1': return 'accent1';
+    case 'accent2': return 'accent2';
+    case 'accent3': return 'accent3';
+    case 'accent4': return 'accent4';
+    case 'accent5': return 'accent5';
+    case 'accent6': return 'accent6';
+    case 'hyperlink': return 'hlink';
+    case 'followedHyperlink': return 'folHlink';
+    default: return 'tx1';
+  }
+}
+
 function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
   const yScale = slideSize.cy / 1080;
@@ -238,7 +256,7 @@ function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
               <a:lnSpc><a:spcPct val="${Math.round((typography.heading.lineHeight || 1) * 100000)}"/></a:lnSpc>
               <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="tx1"/>
+                  <a:schemeClr val="${getColorSchemeRef(typography.heading.colorRef)}"/>
                 </a:solidFill>
                 <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
                 <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
@@ -279,7 +297,7 @@ function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
               <a:buNone/>
               <a:defRPr sz="${Math.round(typography.subtitle.fontSize * 100)}" spc="${Math.round(typography.subtitle.fontSize * 100 * (typography.subtitle.letterSpacing || 0))}" b="${utils.getWeight(typography.subtitle.fontId, typography.subtitle.fontWeight)}" i="${utils.getItalic(typography.subtitle.fontId)}" ${typography.subtitle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                  <a:solidFill>
-                  <a:schemeClr val="tx1"/>
+                  <a:schemeClr val="${getColorSchemeRef(typography.subtitle.colorRef)}"/>
                 </a:solidFill>
                 <a:latin typeface="${utils.getFontRefs(typography.subtitle.fontId).lt}"/>
                 <a:ea typeface="${utils.getFontRefs(typography.subtitle.fontId).ea}"/>
@@ -359,7 +377,7 @@ function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
               <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
               <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="tx1"/>
+                  <a:schemeClr val="${getColorSchemeRef(typography.heading.colorRef)}"/>
                 </a:solidFill>
                 <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
                 <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
@@ -399,7 +417,7 @@ function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
               <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
               <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="tx1"/>
+                  <a:schemeClr val="${getColorSchemeRef(typography.bodyLarge.colorRef)}"/>
                 </a:solidFill>
                 <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
                 <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
@@ -473,7 +491,7 @@ function generateSectionHeaderLayout(slideSize: OOXMLSlideSize, config: LayoutCo
               <a:lnSpc><a:spcPct val="${Math.round((typography.heading.lineHeight || 1) * 100000)}"/></a:lnSpc>
               <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="tx1"/>
+                  <a:schemeClr val="${getColorSchemeRef(typography.heading.colorRef)}"/>
                 </a:solidFill>
                 <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
                 <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
@@ -980,7 +998,7 @@ function generateQuoteLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, ty
               <a:buNone/>
               <a:defRPr sz="${Math.round(typography.quote.fontSize * 100)}" b="${utils.getWeight(typography.quote.fontId, typography.quote.fontWeight)}" i="${utils.getItalic(typography.quote.fontId)}" ${typography.quote.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="accent1"/>
+                  <a:schemeClr val="${getColorSchemeRef(typography.quote.colorRef)}"/>
                 </a:solidFill>
                 <a:latin typeface="${utils.getFontRefs(typography.quote.fontId).lt}"/>
                 <a:ea typeface="${utils.getFontRefs(typography.quote.fontId).ea}"/>

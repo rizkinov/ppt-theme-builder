@@ -183,7 +183,7 @@ export function FontManager({ className }: FontManagerProps) {
                 {/* Preview Text */}
                 <span
                   className="text-lg opacity-50 hidden group-hover:block"
-                  style={{ fontFamily: font.name, fontStyle: font.style }}
+                  style={{ fontFamily: `Preview ${font.family}`, fontStyle: font.style }}
                 >
                   Aa
                 </span>

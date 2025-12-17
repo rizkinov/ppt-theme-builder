@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { TemplateConfig, ThemeColors, TextStyle, Guide, FontAsset } from './types';
+import { TemplateConfig, ThemeColors, TextStyle, FontAsset } from './types';
 import { defaultTemplateConfig, slideDimensions, defaultFontLibrary } from './defaults';
 
 interface BuilderState {
@@ -183,7 +183,7 @@ export const useBuilderStore = create<BuilderState>()(
         name: 'ppt-builder-storage',
         partialize: (state) => ({ config: state.config }),
         version: 1,
-        migrate: (persistedState: any, version) => {
+        migrate: (persistedState: unknown, version) => {
           if (version === undefined || version < 1) {
             // Migration: Ensure fontLibrary is populated
             const state = persistedState as BuilderState;

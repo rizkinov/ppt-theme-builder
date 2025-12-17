@@ -243,6 +243,7 @@ export function convertToPOTXConfig(appConfig: TemplateConfig): POTXConfig {
     lineHeight: style.lineHeight,
     letterSpacing: style.letterSpacing,
     textTransform: style.textTransform,
+    colorRef: style.colorRef,
   });
 
   return {

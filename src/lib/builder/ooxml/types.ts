@@ -84,6 +84,7 @@ export interface TextStyleConfig {
   lineHeight: number;
   letterSpacing: number;
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  colorRef?: string;
 }
 
 export interface TypographyConfig {

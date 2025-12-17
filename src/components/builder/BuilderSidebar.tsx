@@ -101,9 +101,11 @@ export function BuilderSidebar() {
                 <Link
                   href={item.href}
                   className={cn(
-                    "flex items-start gap-3 px-4 py-3 transition-colors group",
+                    "flex items-start gap-3 px-4 py-3 transition-colors group border-l-4",
                     "hover:bg-lighter-grey",
-                    isActive && "bg-lighter-grey border-l-4 border-cbre-green"
+                    isActive
+                      ? "bg-lighter-grey border-cbre-green"
+                      : "border-transparent"
                   )}
                 >
                   <Icon

@@ -4,7 +4,7 @@
  */
 
 import { xmlDeclaration, NAMESPACES } from './xml-utils';
-import { OOXMLSlideSize, TypographyConfig, TextStyleConfig, OOXMLFontScheme } from './types';
+import { OOXMLSlideSize, TypographyConfig, OOXMLFontScheme } from './types';
 import { FontAsset } from '../types';
 
 export interface FontUtils {
@@ -85,8 +85,8 @@ export function generateSlideMasterXml(
           <a:chExt cx="0" cy="0"/>
         </a:xfrm>
       </p:grpSpPr>
-      ${generateTitlePlaceholder(slideSize, typography.heading)}
-      ${generateBodyPlaceholder(slideSize, typography.bodyLarge)}
+      ${generateTitlePlaceholder(slideSize)}
+      ${generateBodyPlaceholder(slideSize)}
       ${generateDatePlaceholder(slideSize)}
       ${generateFooterPlaceholder(slideSize)}
       ${generateSlideNumberPlaceholder(slideSize)}
@@ -98,7 +98,7 @@ export function generateSlideMasterXml(
 </p:sldMaster>`;
 }
 
-function generateTitlePlaceholder(slideSize: OOXMLSlideSize, _style: TextStyleConfig): string {
+function generateTitlePlaceholder(slideSize: OOXMLSlideSize): string {
   // CBRE Grid alignment: exact pixel values converted to EMUs
   // For 16:9: 1920x1080px at 6350 EMUs per pixel
   const emuPerPixelX = slideSize.cx / 1920;
@@ -143,7 +143,7 @@ function generateTitlePlaceholder(slideSize: OOXMLSlideSize, _style: TextStyleCo
       </p:sp>`;
 }
 
-function generateBodyPlaceholder(slideSize: OOXMLSlideSize, _style: TextStyleConfig): string {
+function generateBodyPlaceholder(slideSize: OOXMLSlideSize): string {
   // CBRE Grid alignment: exact pixel values converted to EMUs
   const emuPerPixelX = slideSize.cx / 1920;
   const emuPerPixelY = slideSize.cy / 1080;
