@@ -51,39 +51,36 @@ export function generatePresPropsXml(): string {
 </p:presentationPr>`;
 }
 
-// Generate viewProps.xml with guides
-// Note: Guides in viewProps.xml are visible and movable in Normal View
+// Generate viewProps.xml with guides visibility setting
+// Note: CBRE PPT.pptx has showGuides="1" but empty <p:guideLst/> because
+// the actual guides are stored in slideMaster1.xml under p15:sldGuideLst
 export function generateViewPropsXml(guides: OOXMLGuide[]): string {
-  const guideList = guides.length > 0
-    ? `<p:cSldViewPr>
-      <p:cViewPr>
-        <p:scale>
-          <a:sx n="100" d="100"/>
-          <a:sy n="100" d="100"/>
-        </p:scale>
-        <p:origin x="0" y="0"/>
-      </p:cViewPr>
-      <p:guideLst>
-        ${guides.map(g => `<p:guide orient="${g.orient}" pos="${g.pos}"/>`).join('\n        ')}
-      </p:guideLst>
-    </p:cSldViewPr>`
-    : `<p:cSldViewPr>
-      <p:cViewPr>
-        <p:scale>
-          <a:sx n="100" d="100"/>
-          <a:sy n="100" d="100"/>
-        </p:scale>
-        <p:origin x="0" y="0"/>
-      </p:cViewPr>
-    </p:cSldViewPr>`;
+  // Include guides in viewProps for older PowerPoint compatibility
+  // But primary guides are in the slide master extension (p15:sldGuideLst)
+  const guideElements = guides.length > 0
+    ? guides.map(g => `<p:guide orient="${g.orient}" pos="${g.pos}"/>`).join('\n        ')
+    : '';
+
+  const guideLst = guideElements
+    ? `<p:guideLst>\n        ${guideElements}\n      </p:guideLst>`
+    : '<p:guideLst/>';
 
   return `${xmlDeclaration()}<p:viewPr xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" lastView="sldThumbnailView">
-  <p:normalViewPr>
-    <p:restoredLeft sz="15620"/>
-    <p:restoredTop sz="94660"/>
+  <p:normalViewPr horzBarState="maximized">
+    <p:restoredLeft sz="15620" autoAdjust="0"/>
+    <p:restoredTop sz="94660" autoAdjust="0"/>
   </p:normalViewPr>
   <p:slideViewPr>
-    ${guideList}
+    <p:cSldViewPr showGuides="1">
+      <p:cViewPr varScale="1">
+        <p:scale>
+          <a:sx n="100" d="100"/>
+          <a:sy n="100" d="100"/>
+        </p:scale>
+        <p:origin x="0" y="0"/>
+      </p:cViewPr>
+      ${guideLst}
+    </p:cSldViewPr>
   </p:slideViewPr>
   <p:notesTextViewPr>
     <p:cViewPr>
@@ -94,6 +91,7 @@ export function generateViewPropsXml(guides: OOXMLGuide[]): string {
       <p:origin x="0" y="0"/>
     </p:cViewPr>
   </p:notesTextViewPr>
+  <p:gridSpacing cx="72008" cy="72008"/>
 </p:viewPr>`;
 }
 

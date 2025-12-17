@@ -47,25 +47,26 @@ export async function generatePOTX(config: POTXConfig): Promise<Blob> {
   const pixelWidth = config.slideSize === 'A4-landscape' ? 1122 : 1920;  // 297mm * ~3.78 px/mm
   const pixelHeight = config.slideSize === 'A4-landscape' ? 794 : 1080;   // 210mm * ~3.78 px/mm
 
-  // Convert guides to OOXML format
-  // Guide pos is measured from center of slide
-  // After testing: values need to be ~10x larger than points to span the slide
-  // Range should be roughly -4800 to +4800 for 16:9 slides
+  // Convert guides to OOXML format for p15:sldGuideLst
+  // Based on analysis of CBRE PPT.pptx:
+  // - Guide position is in 1/8 points from top-left corner
+  // - For 16:9 (12192000 EMUs width = 960 points), rightmost guide at 1920px = pos 7680
+  // - Formula: position = pixels × (slideWidthInPoints / pixelWidth) × 8
+  // - For 16:9: position = pixels × (960 / 1920) × 8 = pixels × 4
+
+  // Calculate points from EMUs (1 point = 12700 EMUs)
+  const slideWidthPoints = slideSize.cx / 12700;
+  const slideHeightPoints = slideSize.cy / 12700;
 
   const rawGuides: OOXMLGuide[] = config.guides.map(g => {
-    // Calculate EMUs per pixel for this slide size
-    const emuPerPixelX = slideSize.cx / pixelWidth;
-    const emuPerPixelY = slideSize.cy / pixelHeight;
-
-    // Guide positions in OOXML are relative to top-left corner
-    // Unit is 1/8 point (1587.5 EMUs)
-
     if (g.orientation === 'vertical') {
-      const positionInEMU = g.position * emuPerPixelX;
-      return { orient: 'vert' as const, pos: Math.round(positionInEMU / 1587.5) };
+      // Vertical guide: position in 1/8 points from left edge
+      const positionIn8thPoints = Math.round(g.position * (slideWidthPoints / pixelWidth) * 8);
+      return { orient: 'vert' as const, pos: positionIn8thPoints };
     } else {
-      const positionInEMU = g.position * emuPerPixelY;
-      return { orient: 'horz' as const, pos: Math.round(positionInEMU / 1587.5) };
+      // Horizontal guide: position in 1/8 points from top edge
+      const positionIn8thPoints = Math.round(g.position * (slideHeightPoints / pixelHeight) * 8);
+      return { orient: 'horz' as const, pos: positionIn8thPoints };
     }
   });
 
