@@ -73,7 +73,7 @@ export default function GuidesPage() {
             <CBRECardContent>
               <div className="flex justify-center p-4">
                 <div
-                  className="relative bg-white border-2 border-light-grey shadow-lg"
+                  className="relative bg-white border-2 border-light-grey shadow-lg box-content"
                   style={{
                     width: `${canvasWidth}px`,
                     height: `${canvasHeight}px`,
@@ -85,7 +85,7 @@ export default function GuidesPage() {
                     .map((guide) => (
                       <div
                         key={guide.id}
-                        className="absolute left-0 right-0 border-t-2 border-dashed border-accent-green cursor-pointer hover:border-cbre-green transition-colors group"
+                        className="absolute left-0 right-0 border-t border-dashed border-accent-green cursor-pointer hover:border-cbre-green transition-colors group"
                         style={{
                           top: `${guide.position * scale}px`,
                         }}
@@ -105,7 +105,7 @@ export default function GuidesPage() {
                     .map((guide) => (
                       <div
                         key={guide.id}
-                        className="absolute top-0 bottom-0 border-l-2 border-dashed border-accent-green cursor-pointer hover:border-cbre-green transition-colors group"
+                        className="absolute top-0 bottom-0 border-l border-dashed border-accent-green cursor-pointer hover:border-cbre-green transition-colors group"
                         style={{
                           left: `${guide.position * scale}px`,
                         }}
@@ -250,77 +250,35 @@ export default function GuidesPage() {
                     clearGuides();
 
                     /**
-                     * CBRE Official Grid for 16:9 slides (33.87 × 19.05 cm)
-                     * 
-                     * Margins:
-                     * - Left/Right: 1.4 cm = 79px
-                     * - Top: 0.92 cm = 52px
-                     * - Bottom: 1.02 cm = 58px
-                     * - Row gutter: 0.3 cm = 17px
+                     * CBRE Official Grid for 16:9 slides (1920x1080)
+                     * EXACT positions extracted from official CBRE PPT.pptx template
+                     * These pixel values are derived from the p15:sldGuideLst in slideMaster1.xml
                      */
 
-                    // Margin constants
-                    const MARGIN_LEFT_RIGHT = 79;
-                    const MARGIN_TOP = 52;
-                    const MARGIN_BOTTOM = 58;
-
-                    // Column constants (calculated for exact 1920px)
-                    const COLUMN_WIDTH = 67;
-                    const COL_GUTTER = 288 / 21;  // = 13.714 (exact)
-
-                    // Row constants (exact from official template)
-                    const ROW_GUTTER = 17;  // 0.3 cm
-                    const ROW_HEIGHTS = [
-                      69,   // Row 1: 1.21 cm
-                      79,   // Row 2: 1.4 cm
-                      85,   // Row 3: 1.5 cm
-                      79,   // Row 4: 1.4 cm
-                      79,   // Row 5: 1.4 cm
-                      85,   // Row 6: 1.5 cm
-                      79,   // Row 7: 1.4 cm
-                      79,   // Row 8: 1.4 cm
-                      85,   // Row 9: 1.5 cm
-                      65,   // Row 10: 1.15 cm
+                    // EXACT vertical guide positions from CBRE PPT.pptx (in pixels)
+                    const verticalPositions = [
+                      0, 64, 80, 144, 160, 226, 242, 306, 322, 388, 402, 468,
+                      484, 548, 564, 630, 644, 710, 726, 790, 806, 872, 888, 952,
+                      968, 1032, 1048, 1114, 1130, 1194, 1210, 1274, 1290, 1356,
+                      1372, 1436, 1452, 1516, 1532, 1598, 1614, 1678, 1694, 1758,
+                      1774, 1840, 1856, 1920,
                     ];
 
-                    // VERTICAL GUIDES
-                    // Left margin
-                    addGuide('vertical', 0);
-                    addGuide('vertical', MARGIN_LEFT_RIGHT);
+                    // EXACT horizontal guide positions from CBRE PPT.pptx (in pixels)
+                    const horizontalPositions = [
+                      0, 56, 72, 138, 154, 236, 252, 334, 350, 434, 450, 532,
+                      548, 630, 646, 730, 746, 828, 844, 926, 942, 1008, 1024, 1080,
+                    ];
 
-                    // 22 content columns + 21 gutters (no gutter before right margin)
-                    let x = MARGIN_LEFT_RIGHT;
-                    for (let col = 0; col < 22; col++) {
-                      addGuide('vertical', Math.round(x));
-                      x += COLUMN_WIDTH;
-                      addGuide('vertical', Math.round(x));
-                      if (col < 21) x += COL_GUTTER;  // Only gutter between columns
-                    }
+                    // Add vertical guides
+                    verticalPositions.forEach((pos) => {
+                      addGuide('vertical', pos);
+                    });
 
-                    // Right margin (starts immediately after last column)
-                    addGuide('vertical', Math.round(x));
-                    x += MARGIN_LEFT_RIGHT;
-                    addGuide('vertical', Math.round(x));
-
-                    // HORIZONTAL GUIDES
-                    // Top margin
-                    addGuide('horizontal', 0);
-                    addGuide('horizontal', MARGIN_TOP);
-
-                    let y = MARGIN_TOP + ROW_GUTTER;
-
-                    // 10 content rows with gutters between
-                    for (let row = 0; row < 10; row++) {
-                      addGuide('horizontal', y);
-                      y += ROW_HEIGHTS[row];
-                      addGuide('horizontal', y);
-                      if (row < 9) y += ROW_GUTTER;
-                    }
-                    y += ROW_GUTTER;
-
-                    // Bottom margin
-                    addGuide('horizontal', 1080 - MARGIN_BOTTOM);
-                    addGuide('horizontal', 1080);
+                    // Add horizontal guides
+                    horizontalPositions.forEach((pos) => {
+                      addGuide('horizontal', pos);
+                    });
                   }}
                   size="sm"
                   className="w-full"
@@ -396,7 +354,7 @@ export default function GuidesPage() {
                     <div className="flex items-center gap-4 flex-1">
                       <div className={cn(
                         "px-3 py-1 text-xs font-calibre font-medium",
-                        guide.orientation === 'vertical' ? "bg-accent-green text-cbre-green" : "bg-sage text-white"
+                        guide.orientation === 'vertical' ? "bg-[#17E88F] text-cbre-green" : "bg-[#003F2D] text-white"
                       )}>
                         {guide.orientation === 'vertical' ? 'Vertical' : 'Horizontal'}
                       </div>

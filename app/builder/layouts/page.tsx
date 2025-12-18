@@ -33,8 +33,8 @@ export default function LayoutsPage() {
 
     return (
       <div
-        className="bg-white border border-light-grey relative"
-        style={{ width: `${width}px`, height: `${height}px` }}
+        className="bg-white border border-light-grey relative box-content"
+        style={{ width: `${Math.round(width)}px`, height: `${Math.round(height)}px` }}
       >
         {layout.placeholders.map((placeholder) => (
           <div
@@ -46,10 +46,10 @@ export default function LayoutsPage() {
               placeholder.type === 'body' && "border-dark-grey bg-dark-grey/5"
             )}
             style={{
-              left: `${placeholder.x * layoutScaleX * scale}px`,
-              top: `${placeholder.y * layoutScaleY * scale}px`,
-              width: `${placeholder.width * layoutScaleX * scale}px`,
-              height: `${placeholder.height * layoutScaleY * scale}px`,
+              left: `${Math.round(placeholder.x * layoutScaleX * scale)}px`,
+              top: `${Math.round(placeholder.y * layoutScaleY * scale)}px`,
+              width: `${Math.round(placeholder.width * layoutScaleX * scale)}px`,
+              height: `${Math.round(placeholder.height * layoutScaleY * scale)}px`,
             }}
           >
             <div className="flex items-center justify-center h-full">

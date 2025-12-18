@@ -9,51 +9,51 @@ import { FontAsset } from '../types';
 
 // ============================================================================
 // CBRE GRID CONSTANTS (for 1920x1080 base, scaled for other sizes)
+// EXACT values from CBRE PPT.pptx guides - must match defaults.ts GRID
 // ============================================================================
 const CBRE_GRID = {
-  // Margins
-  MARGIN_X: 79,                      // 1.4 cm left/right
-  MARGIN_TOP: 52,                    // 0.92 cm top
-  MARGIN_BOTTOM: 58,                 // 1.02 cm bottom
+  // Content area boundaries (from guides)
+  CONTENT_X: 80,                       // Col 1 start (after margin + gutter)
+  CONTENT_END_X: 1840,                 // Col 22 end
+  CONTENT_WIDTH: 1760,                 // 1840 - 80 = 1760px
 
-  // Column/Row gaps
-  COL_GUTTER: 288 / 21,              // ≈13.71px
-  ROW_GUTTER: 17,                    // 0.3 cm
-  COLUMN_WIDTH: 67,
-
-  // Row Y positions (start of each row after gutter)
-  ROW_Y: [69, 155, 251, 353, 449, 545, 647, 743, 839, 941],
-  ROW_H: [69, 79, 85, 79, 79, 85, 79, 79, 85, 65],
-
-  // Derived values for 1920x1080
-  CONTENT_X: 79,
-  CONTENT_WIDTH: 1762,               // 1920 - 79 - 79
-  CONTENT_BOTTOM: 1006,              // Row 10 end
+  // Row Y positions (start of each row) - from extracted guides
+  ROW_Y: [72, 154, 252, 350, 450, 548, 646, 746, 844, 942],
+  // Row heights
+  ROW_H: [66, 82, 82, 84, 82, 82, 84, 82, 82, 66],
+  // Row end positions
+  ROW_END: [138, 236, 334, 434, 532, 630, 730, 828, 926, 1008],
 
   // Standard layout positions
-  TITLE_Y: 69,                       // Row 1 start
-  TITLE_HEIGHT: 165,                 // Rows 1-2 (69 + 17 + 79)
-  CONTENT_Y: 251,                    // Row 3 start
-  CONTENT_HEIGHT: 755,               // Rows 3-10 (1006 - 251)
+  TITLE_Y: 72,                         // Row 1 start
+  TITLE_HEIGHT: 164,                   // Rows 1-2 (236 - 72 = 164px)
+  CONTENT_Y: 252,                      // Row 3 start
+  CONTENT_HEIGHT: 756,                 // Rows 3-10 (1008 - 252 = 756px)
 
-  // Half widths for two-column layouts
-  HALF_WIDTH: 874,                   // 11 columns (11*67 + 10*13.71)
-  HALF_GAP: 14,                      // Gap between halves
-  HALF_RIGHT_X: 967,                 // 79 + 874 + 14
+  // Half widths for two-column layouts (11 columns each)
+  HALF_WIDTH: 872,                     // 952 - 80 = 872px (cols 1-11)
+  HALF_GAP: 16,                        // Gap between halves (952 to 968)
+  HALF_RIGHT_X: 968,                   // Col 12 start
 
   // Title slide (centered)
-  TITLE_SLIDE_TITLE_Y: 353,          // Row 4
-  TITLE_SLIDE_TITLE_H: 175,          // Rows 4-5 (79+17+79)
-  TITLE_SLIDE_SUBTITLE_Y: 545,       // Row 6
-  TITLE_SLIDE_SUBTITLE_H: 181,       // Rows 6-7 (85+17+79)
+  TITLE_SLIDE_TITLE_Y: 350,            // Row 4 start
+  TITLE_SLIDE_TITLE_H: 182,            // Rows 4-5 (532 - 350 = 182px)
+  TITLE_SLIDE_SUBTITLE_Y: 548,         // Row 6 start
+  TITLE_SLIDE_SUBTITLE_H: 182,         // Rows 6-7 (730 - 548 = 182px)
 
   // Section header (vertically centered)
-  SECTION_Y: 449,                    // Row 5
-  SECTION_HEIGHT: 277,               // Rows 5-7 (79+17+85+17+79)
+  SECTION_Y: 450,                      // Row 5 start
+  SECTION_HEIGHT: 280,                 // Rows 5-7 (730 - 450 = 280px)
 
-  // Three column widths (7-8-7 split)
-  THREE_COL_7: Math.round(7 * 67 + 6 * (288 / 21)),  // 551px (7 columns)
-  THREE_COL_8: Math.round(8 * 67 + 7 * (288 / 21)),  // 632px (8 columns)
+  // Three column widths (7-7-8 split) - from guides
+  // Col 1-7: 80 to 630 = 550px
+  // Col 8-14: 644 to 1194 = 550px
+  // Col 15-22: 1210 to 1840 = 630px
+  THREE_COL_LEFT_WIDTH: 550,
+  THREE_COL_CENTER_X: 644,
+  THREE_COL_CENTER_WIDTH: 550,
+  THREE_COL_RIGHT_X: 1210,
+  THREE_COL_RIGHT_WIDTH: 630,
 };
 
 export type LayoutType =
@@ -1113,14 +1113,13 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
   const contentY = Math.round(CBRE_GRID.CONTENT_Y * yScale);
   const contentCy = Math.round(CBRE_GRID.CONTENT_HEIGHT * yScale);
 
-  // Three columns: 7-8-7 split
-  const col7Width = Math.round(CBRE_GRID.THREE_COL_7 * xScale);  // 551px
-  const col8Width = Math.round(CBRE_GRID.THREE_COL_8 * xScale);  // 632px
-  const gutter = Math.round(CBRE_GRID.HALF_GAP * xScale);        // 14px
-
-  const col1X = Math.round(CBRE_GRID.CONTENT_X * xScale);                                                       // 79
-  const col2X = Math.round((CBRE_GRID.CONTENT_X + CBRE_GRID.THREE_COL_7 + CBRE_GRID.HALF_GAP) * xScale);        // 644
-  const col3X = Math.round((CBRE_GRID.CONTENT_X + CBRE_GRID.THREE_COL_7 + CBRE_GRID.HALF_GAP + CBRE_GRID.THREE_COL_8 + CBRE_GRID.HALF_GAP) * xScale);  // 1290
+  // Three columns: 7-7-8 split (exact from guides)
+  const col1X = Math.round(CBRE_GRID.CONTENT_X * xScale);        // 80
+  const col1Width = Math.round(CBRE_GRID.THREE_COL_LEFT_WIDTH * xScale);   // 550px
+  const col2X = Math.round(CBRE_GRID.THREE_COL_CENTER_X * xScale);         // 644
+  const col2Width = Math.round(CBRE_GRID.THREE_COL_CENTER_WIDTH * xScale); // 550px
+  const col3X = Math.round(CBRE_GRID.THREE_COL_RIGHT_X * xScale);          // 1210
+  const col3Width = Math.round(CBRE_GRID.THREE_COL_RIGHT_WIDTH * xScale);  // 630px
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">
@@ -1191,7 +1190,7 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
         <p:spPr>
           <a:xfrm>
             <a:off x="${col1X}" y="${contentY}"/>
-            <a:ext cx="${col7Width}" cy="${contentCy}"/>
+            <a:ext cx="${col1Width}" cy="${contentCy}"/>
           </a:xfrm>
         </p:spPr>
         <p:txBody>
@@ -1231,7 +1230,7 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
         <p:spPr>
           <a:xfrm>
             <a:off x="${col2X}" y="${contentY}"/>
-            <a:ext cx="${col8Width}" cy="${contentCy}"/>
+            <a:ext cx="${col2Width}" cy="${contentCy}"/>
           </a:xfrm>
         </p:spPr>
         <p:txBody>
@@ -1271,7 +1270,7 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
         <p:spPr>
           <a:xfrm>
             <a:off x="${col3X}" y="${contentY}"/>
-            <a:ext cx="${col7Width}" cy="${contentCy}"/>
+            <a:ext cx="${col3Width}" cy="${contentCy}"/>
           </a:xfrm>
         </p:spPr>
         <p:txBody>
@@ -1326,15 +1325,16 @@ function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: 
   const leftX = Math.round(CBRE_GRID.CONTENT_X * xScale);
   const rightX = Math.round(CBRE_GRID.HALF_RIGHT_X * xScale);
 
-  // Left content (full height)
+  // Left content (full height: rows 3-10)
   const leftContentCy = Math.round(CBRE_GRID.CONTENT_HEIGHT * yScale);
 
-  // Right stacked: (755 - 17) / 2 ≈ 369px each
-  const stackedHeight = Math.round((CBRE_GRID.CONTENT_HEIGHT - CBRE_GRID.ROW_GUTTER) / 2 * yScale);
-  const stackGap = Math.round(CBRE_GRID.ROW_GUTTER * yScale);
-  const rightTopY = Math.round(CBRE_GRID.CONTENT_Y * yScale);
-  const rightBottomY = Math.round((CBRE_GRID.CONTENT_Y + (CBRE_GRID.CONTENT_HEIGHT - CBRE_GRID.ROW_GUTTER) / 2 + CBRE_GRID.ROW_GUTTER) * yScale);
-  const rightBottomCy = Math.round((CBRE_GRID.CONTENT_HEIGHT - CBRE_GRID.ROW_GUTTER) / 2 * yScale);
+  // Right stacked: Split at gutter between Row 6 and Row 7
+  // Top box: Row 3-6, y=252 to y=630 (height = 378px)
+  // Bottom box: Row 7-10, y=646 to y=1008 (height = 362px)
+  const rightTopY = Math.round(CBRE_GRID.ROW_Y[2] * yScale);   // Row 3 start = 252
+  const rightTopCy = Math.round((CBRE_GRID.ROW_END[5] - CBRE_GRID.ROW_Y[2]) * yScale);  // 630 - 252 = 378px
+  const rightBottomY = Math.round(CBRE_GRID.ROW_Y[6] * yScale);  // Row 7 start = 646
+  const rightBottomCy = Math.round((CBRE_GRID.ROW_END[9] - CBRE_GRID.ROW_Y[6]) * yScale);  // 1008 - 646 = 362px
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">
@@ -1445,7 +1445,7 @@ function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: 
         <p:spPr>
           <a:xfrm>
             <a:off x="${rightX}" y="${rightTopY}"/>
-            <a:ext cx="${columnWidth}" cy="${stackedHeight}"/>
+            <a:ext cx="${columnWidth}" cy="${rightTopCy}"/>
           </a:xfrm>
         </p:spPr>
         <p:txBody>
@@ -1536,14 +1536,14 @@ function generateSidebarContentLayout(slideSize: OOXMLSlideSize, config: LayoutC
   const contentY = Math.round(CBRE_GRID.CONTENT_Y * yScale);
   const contentCy = Math.round(CBRE_GRID.CONTENT_HEIGHT * yScale);
 
-  // Sidebar: 5 columns (5*67 + 4*13.71 ≈ 390px)
-  const sidebarWidth5Col = Math.round((5 * CBRE_GRID.COLUMN_WIDTH + 4 * CBRE_GRID.COL_GUTTER));
+  // Sidebar: 5 columns (80 to 468 = 388px from guides)
+  const sidebarWidth5Col = 388;  // Col 5 end - Col 1 start = 468 - 80
   const sidebarWidth = Math.round(sidebarWidth5Col * xScale);
-  // Main content: remaining width
-  const mainContentWidth = Math.round((CBRE_GRID.CONTENT_WIDTH - sidebarWidth5Col - CBRE_GRID.HALF_GAP) * xScale);
+  // Main content: Col 6 start to Col 22 end (484 to 1840 = 1356px from guides)
+  const mainContentWidth = Math.round(1356 * xScale);
 
-  const sidebarX = Math.round(CBRE_GRID.CONTENT_X * xScale);
-  const mainContentX = Math.round((CBRE_GRID.CONTENT_X + sidebarWidth5Col + CBRE_GRID.HALF_GAP) * xScale);
+  const sidebarX = Math.round(CBRE_GRID.CONTENT_X * xScale);  // 80
+  const mainContentX = Math.round(484 * xScale);               // Col 6 start from guides
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">

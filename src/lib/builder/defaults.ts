@@ -414,18 +414,18 @@ export const defaultLayoutTemplates: LayoutTemplate[] = [
       {
         id: 'sidebar-top',
         type: 'body',
-        x: GRID.HALF_RIGHT_START,                 // 968px
-        y: CONTENT_Y,                             // 252px
+        x: GRID.HALF_RIGHT_START,                 // 968px (Col 12 start)
+        y: GRID.ROW_Y[2],                         // 252px (Row 3 start)
         width: GRID.HALF_WIDTH,                   // 872px
-        height: Math.round((CONTENT_HEIGHT - GRID.GUTTER) / 2), // (756 - 16) / 2 = 370px
+        height: GRID.ROW_END[5] - GRID.ROW_Y[2],  // 630 - 252 = 378px (Rows 3-6)
       },
       {
         id: 'sidebar-bottom',
         type: 'body',
-        x: GRID.HALF_RIGHT_START,                 // 968px
-        y: CONTENT_Y + Math.round((CONTENT_HEIGHT - GRID.GUTTER) / 2) + GRID.GUTTER, // 252 + 370 + 16 = 638px
+        x: GRID.HALF_RIGHT_START,                 // 968px (Col 12 start)
+        y: GRID.ROW_Y[6],                         // 646px (Row 7 start)
         width: GRID.HALF_WIDTH,                   // 872px
-        height: Math.round((CONTENT_HEIGHT - GRID.GUTTER) / 2), // 370px
+        height: GRID.ROW_END[9] - GRID.ROW_Y[6],  // 1008 - 646 = 362px (Rows 7-10)
       },
     ],
   },

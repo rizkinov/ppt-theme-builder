@@ -90,10 +90,10 @@ export function SlidePreview({
   return (
     <div className={cn("relative", className)}>
       <div
-        className="relative shadow-lg"
+        className="relative shadow-lg box-content border-2 border-light-grey"
         style={{
-          width: `${width}px`,
-          height: `${height}px`,
+          width: `${Math.round(width)}px`,
+          height: `${Math.round(height)}px`,
           backgroundColor: config.theme.colors.light1,
         }}
       >
@@ -108,10 +108,10 @@ export function SlidePreview({
               placeholder.type === 'body' && "overflow-auto"
             )}
             style={{
-              left: `${placeholder.x * layoutScaleX * scale}px`,
-              top: `${placeholder.y * layoutScaleY * scale}px`,
-              width: `${placeholder.width * layoutScaleX * scale}px`,
-              height: `${placeholder.height * layoutScaleY * scale}px`,
+              left: `${Math.round(placeholder.x * layoutScaleX * scale)}px`,
+              top: `${Math.round(placeholder.y * layoutScaleY * scale)}px`,
+              width: `${Math.round(placeholder.width * layoutScaleX * scale)}px`,
+              height: `${Math.round(placeholder.height * layoutScaleY * scale)}px`,
             }}
           >
             <p
@@ -133,7 +133,7 @@ export function SlidePreview({
                   key={guide.id}
                   className="absolute left-0 right-0 border-t border-dashed border-accent-green opacity-50"
                   style={{
-                    top: `${guide.position * scale}px`,
+                    top: `${Math.round(guide.position * layoutScaleY * scale)}px`,
                   }}
                 />
               ))}
@@ -144,15 +144,12 @@ export function SlidePreview({
                   key={guide.id}
                   className="absolute top-0 bottom-0 border-l border-dashed border-accent-green opacity-50"
                   style={{
-                    left: `${guide.position * scale}px`,
+                    left: `${Math.round(guide.position * layoutScaleX * scale)}px`,
                   }}
                 />
               ))}
           </>
         )}
-
-        {/* Border */}
-        <div className="absolute inset-0 border-2 border-light-grey pointer-events-none" />
       </div>
     </div>
   );
