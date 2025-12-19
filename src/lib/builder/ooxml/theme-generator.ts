@@ -5,11 +5,13 @@
 
 import { OOXMLThemeColors, OOXMLFontScheme } from './types';
 import { xmlDeclaration, hexToOOXMLColor, escapeXml, NAMESPACES } from './xml-utils';
+import { CustomColor } from '../types';
 
 export function generateThemeXml(
   themeName: string,
   colors: OOXMLThemeColors,
-  fonts: OOXMLFontScheme
+  fonts: OOXMLFontScheme,
+  customColors?: CustomColor[]
 ): string {
   const xml = `${xmlDeclaration()}<a:theme xmlns:a="${NAMESPACES.a}" name="${escapeXml(themeName)}">
   <a:themeElements>
@@ -19,6 +21,7 @@ export function generateThemeXml(
   </a:themeElements>
   <a:objectDefaults/>
   <a:extraClrSchemeLst/>
+  ${customColors && customColors.length > 0 ? generateCustomColorList(customColors) : ''}
 </a:theme>`;
 
   return xml;
@@ -78,6 +81,21 @@ function generateFontScheme(name: string, fonts: OOXMLFontScheme): string {
         <a:cs typeface=""/>
       </a:minorFont>
     </a:fontScheme>`;
+}
+
+function generateCustomColorList(customColors: CustomColor[]): string {
+  const colorEntries = customColors
+    .map(
+      (color) =>
+        `    <a:custClr name="${escapeXml(color.name)}">
+      <a:srgbClr val="${hexToOOXMLColor(color.color)}"/>
+    </a:custClr>`
+    )
+    .join('\n');
+
+  return `  <a:custClrLst>
+${colorEntries}
+  </a:custClrLst>`;
 }
 
 function generateFormatScheme(): string {

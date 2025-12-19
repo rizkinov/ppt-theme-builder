@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { TemplateConfig, ThemeColors, TextStyle, FontAsset } from './types';
-import { defaultTemplateConfig, slideDimensions, defaultFontLibrary } from './defaults';
+import { defaultTemplateConfig, slideDimensions, defaultFontLibrary, defaultCustomColors, defaultTypography } from './defaults';
 
 interface BuilderState {
   config: TemplateConfig;
@@ -182,24 +182,57 @@ export const useBuilderStore = create<BuilderState>()(
       {
         name: 'ppt-builder-storage',
         partialize: (state) => ({ config: state.config }),
-        version: 1,
+        version: 3,
         migrate: (persistedState: unknown, version) => {
+          const state = persistedState as BuilderState;
+
           if (version === undefined || version < 1) {
-            // Migration: Ensure fontLibrary is populated
-            const state = persistedState as BuilderState;
+            // Migration v0 -> v1: Ensure fontLibrary is populated
             const currentLibrary = state.config?.fontLibrary || [];
 
             if (currentLibrary.length === 0) {
-              return {
-                ...state,
-                config: {
-                  ...state.config,
-                  fontLibrary: defaultFontLibrary,
+              state.config = {
+                ...state.config,
+                fontLibrary: defaultFontLibrary,
+              };
+            }
+          }
+
+          if (version === undefined || version < 2) {
+            // Migration v1 -> v2: Ensure customColors is populated
+            if (!state.config?.theme?.customColors) {
+              state.config = {
+                ...state.config,
+                theme: {
+                  ...state.config.theme,
+                  customColors: defaultCustomColors,
                 },
               };
             }
           }
-          return persistedState as BuilderState;
+
+          if (version === undefined || version < 3) {
+            // Migration v2 -> v3: Ensure new 16-style typography system is populated
+            // Check if the new styles exist, if not, populate from defaults
+            if (!state.config?.typography?.slideTitle) {
+              state.config = {
+                ...state.config,
+                typography: {
+                  ...defaultTypography,
+                  // Preserve any legacy custom styles the user may have set
+                  heading: state.config?.typography?.heading || defaultTypography.heading,
+                  subtitle: state.config?.typography?.subtitle || defaultTypography.subtitle,
+                  bodyLarge: state.config?.typography?.bodyLarge || defaultTypography.bodyLarge,
+                  bodySmall: state.config?.typography?.bodySmall || defaultTypography.bodySmall,
+                  quote: state.config?.typography?.quote || defaultTypography.quote,
+                  bullet: state.config?.typography?.bullet || defaultTypography.bullet,
+                  link: state.config?.typography?.link || defaultTypography.link,
+                },
+              };
+            }
+          }
+
+          return state;
         },
       }
     )

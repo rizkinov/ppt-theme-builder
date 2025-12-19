@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -10,28 +9,72 @@ import { useBuilderStore } from '@/src/lib/builder/store';
 import { CBRECard, CBRECardHeader, CBRECardTitle, CBRECardContent } from '@/src/components/cbre/CBRECard';
 import { CBRETabs, CBRETabsList, CBRETabsTrigger, CBRETabsContent } from '@/src/components/cbre/CBRETabs';
 import { TypeScaleGenerator } from '@/src/components/builder/TypeScaleGenerator';
-import { LineSpacingControl } from '@/src/components/builder/LineSpacingControl';
 import { FontLoader } from '@/src/components/builder/FontLoader';
 
-const textStyles = [
-  { key: 'heading' as const, label: 'Heading', description: 'Main titles and headings (H1)' },
-  { key: 'subtitle' as const, label: 'Subtitle', description: 'Secondary headings (H2)' },
-  { key: 'bodyLarge' as const, label: 'Body Large', description: 'Large body text for emphasis' },
-  { key: 'bodySmall' as const, label: 'Body Small', description: 'Standard body text' },
-  { key: 'quote' as const, label: 'Quote', description: 'Block quotes and callouts' },
-  { key: 'bullet' as const, label: 'Bullet List', description: 'Bulleted and numbered lists' },
-  { key: 'link' as const, label: 'Link', description: 'Hyperlinks and CTAs' },
+// CBRE Complete Typography System - 16 Named Styles organized by category
+const textStyleCategories = [
+  {
+    category: 'Titles & Display',
+    description: 'Large display text for title slides and section openers',
+    styles: [
+      { key: 'slideTitle' as const, label: 'Slide Title', description: '28pt Financier Display - Default slide title' },
+      { key: 'titleSlide' as const, label: 'Title Slide', description: '88pt Financier Display - Large title slide text' },
+      { key: 'sectionOpener' as const, label: 'Section Opener', description: '280pt Calibre Light - Dramatic section dividers' },
+    ],
+  },
+  {
+    category: 'Headings',
+    description: 'Hierarchical heading levels for content structure',
+    styles: [
+      { key: 'heading1' as const, label: 'Heading 1', description: '22pt Calibre Light - Primary heading' },
+      { key: 'heading2' as const, label: 'Heading 2', description: '16pt Calibre Semibold - Secondary heading' },
+      { key: 'heading3' as const, label: 'Heading 3', description: '12pt Calibre Semibold - Tertiary heading' },
+    ],
+  },
+  {
+    category: 'Body & Bullets',
+    description: 'Body text and bulleted lists',
+    styles: [
+      { key: 'bodyCopy' as const, label: 'Body Copy', description: '12pt Calibre - Regular body text' },
+      { key: 'bodyBullet1' as const, label: 'Body Bullet 1', description: '12pt Calibre - First-level bullets (en dash)' },
+      { key: 'bodyBullet2' as const, label: 'Body Bullet 2', description: '12pt Calibre - Second-level bullets (bullet)' },
+    ],
+  },
+  {
+    category: 'Captions',
+    description: 'Small text for image captions and annotations',
+    styles: [
+      { key: 'caption' as const, label: 'Caption', description: '10.5pt Calibre Semibold - Caption heading' },
+      { key: 'captionCopy' as const, label: 'Caption Copy', description: '10.5pt Calibre - Caption text' },
+      { key: 'captionBullet' as const, label: 'Caption Bullet', description: '10.5pt Calibre - Caption bullets (en dash)' },
+    ],
+  },
+  {
+    category: 'Special Elements',
+    description: 'Specialized text for presenters, dates, and labels',
+    styles: [
+      { key: 'presenterName' as const, label: 'Presenter Name', description: '16pt Calibre Semibold - Main presenter info' },
+      { key: 'presenterDetails' as const, label: 'Presenter Details', description: '16pt Calibre - Secondary presenter info' },
+      { key: 'dateNavigation' as const, label: 'Date/Navigation', description: '10.5pt Space Mono Bold - Dates and navigation (ALL CAPS)' },
+      { key: 'sectionLabel' as const, label: 'Section Label', description: '10.5pt Space Mono Bold - Section labels (ALL CAPS, Accent Green)' },
+    ],
+  },
 ];
 
 export default function TypographyPage() {
   const { config, updateTextStyle } = useBuilderStore();
+  const [activeTab, setActiveTab] = React.useState('titles-display');
+
+  // Extract fontLibrary and themeColors from config
+  const fontLibrary = config.fontLibrary || [];
+  const themeColors = config.theme.colors;
 
   return (
     <div className="min-h-screen bg-lighter-grey">
       <FontLoader />
       <PageHeader
         title="Typography"
-        description="Upload custom fonts and define text styles for your PowerPoint template."
+        description="Complete CBRE typography system with 16 professional text styles, paragraph spacing, and bullet formatting."
         icon={<Type className="h-7 w-7 text-white" />}
       />
 
@@ -39,112 +82,120 @@ export default function TypographyPage() {
         {/* Info Card */}
         <CBRECard variant="outline">
           <CBRECardContent className="py-4">
-            <p className="text-sm font-calibre text-dark-grey">
-              <strong>Workflow:</strong> Upload your fonts first, then set a type scale for harmonious sizes, and finally fine-tune individual styles as needed.
-            </p>
+            <div className="space-y-2">
+              <p className="text-sm font-calibre text-dark-grey">
+                <strong>CBRE Typography System:</strong> 16 professionally defined text styles with exact specifications from CBRE brand guidelines.
+              </p>
+              <p className="text-xs font-calibre text-dark-grey">
+                Each style includes font family, size, line spacing, paragraph spacing, bullet formatting, and alignment controls.
+              </p>
+            </div>
           </CBRECardContent>
         </CBRECard>
 
         {/* Step 1: Font Library */}
         <CBRECard>
           <CBRECardHeader>
-            <div className="flex items-center gap-2">
-              <span style={{ backgroundColor: '#003F2D' }} className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold">1</span>
-              <CBRECardTitle>Font Library</CBRECardTitle>
-            </div>
-            <p className="text-sm text-dark-grey font-calibre mt-1">
-              Upload and manage your brand font files (TTF/OTF).
-            </p>
+            <CBRECardTitle>Step 1: Font Library</CBRECardTitle>
           </CBRECardHeader>
           <CBRECardContent>
             <FontManager />
           </CBRECardContent>
         </CBRECard>
 
-        {/* Step 2a: Global Type Scale */}
-        <TypeScaleGenerator />
-
-        {/* Step 2b: Line Spacing */}
-        <LineSpacingControl />
-
-        {/* Step 4: Text Styles (Fine-tuning) */}
+        {/* Step 2: Type Scale (Optional) */}
         <CBRECard>
           <CBRECardHeader>
-            <div className="flex items-center gap-2">
-              <span style={{ backgroundColor: '#003F2D' }} className="flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold">4</span>
-              <CBRECardTitle>Text Styles</CBRECardTitle>
-            </div>
-            <p className="text-sm text-dark-grey font-calibre mt-1">
-              Fine-tune each of the 7 text styles used in your template.
-            </p>
+            <CBRECardTitle>Step 2: Type Scale Generator (Optional)</CBRECardTitle>
           </CBRECardHeader>
           <CBRECardContent>
-            <CBRETabs defaultValue="heading" variant="underline">
-              <CBRETabsList>
-                {textStyles.map((style) => (
-                  <CBRETabsTrigger key={style.key} value={style.key}>
-                    {style.label}
-                  </CBRETabsTrigger>
-                ))}
+            <TypeScaleGenerator />
+          </CBRECardContent>
+        </CBRECard>
+
+        {/* Step 3: Text Styles - Organized by Category */}
+        <CBRECard>
+          <CBRECardHeader>
+            <CBRECardTitle>Step 3: Text Styles Configuration</CBRECardTitle>
+          </CBRECardHeader>
+          <CBRECardContent className="space-y-6">
+            <CBRETabs value={activeTab} onValueChange={setActiveTab} defaultValue="titles-display">
+              <CBRETabsList className="grid grid-cols-5 w-full">
+                <CBRETabsTrigger value="titles-display">Titles & Display</CBRETabsTrigger>
+                <CBRETabsTrigger value="headings">Headings</CBRETabsTrigger>
+                <CBRETabsTrigger value="body-bullets">Body & Bullets</CBRETabsTrigger>
+                <CBRETabsTrigger value="captions">Captions</CBRETabsTrigger>
+                <CBRETabsTrigger value="special">Special</CBRETabsTrigger>
               </CBRETabsList>
 
-              {textStyles.map((style) => (
-                <CBRETabsContent key={style.key} value={style.key}>
-                  <TextStyleEditor
-                    label={style.label}
-                    description={style.description}
-                    style={config.typography[style.key]}
-                    fontLibrary={config.fontLibrary || []}
-                    themeColors={config.theme.colors}
-                    onChange={(updates) => updateTextStyle(style.key, updates)}
-                    showPreview={false}
-                  />
-                </CBRETabsContent>
-              ))}
+              {textStyleCategories.map((category, categoryIndex) => {
+                const tabValue = category.category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
+
+                return (
+                  <CBRETabsContent key={categoryIndex} value={tabValue} className="space-y-4">
+                    <div className="mb-4">
+                      <p className="text-sm font-calibre-semibold text-dark-grey">{category.category}</p>
+                      <p className="text-xs font-calibre text-dark-grey mt-1">{category.description}</p>
+                    </div>
+
+                    {category.styles.map((style) => (
+                      <div key={style.key} className="border border-light-grey rounded p-4 bg-white">
+                        <TextStyleEditor
+                          label={style.label}
+                          description={style.description}
+                          style={config.typography[style.key]}
+                          fontLibrary={fontLibrary}
+                          themeColors={themeColors}
+                          onChange={(updates) => updateTextStyle(style.key, updates)}
+                          showPreview={true}
+                        />
+                      </div>
+                    ))}
+                  </CBRETabsContent>
+                );
+              })}
             </CBRETabs>
           </CBRECardContent>
         </CBRECard>
 
-        {/* Final: Complete Typography Preview */}
+        {/* Typography Preview */}
         <CBRECard>
           <CBRECardHeader>
-            <CBRECardTitle>Live Preview</CBRECardTitle>
-            <p className="text-sm text-dark-grey font-calibre mt-1">
-              See all your text styles rendered together.
-            </p>
+            <CBRECardTitle>Typography Preview</CBRECardTitle>
           </CBRECardHeader>
-          <CBRECardContent>
-            <div className="space-y-6 p-6 bg-white border border-light-grey rounded-md">
-              {textStyles.map((styleConfig) => {
-                const style = config.typography[styleConfig.key];
-                const fontAsset = (config.fontLibrary || []).find(f => f.id === style.fontId);
-                // Resolve color: use theme color if colorRef is set, otherwise use color
-                const displayColor = style.colorRef
-                  ? config.theme.colors[style.colorRef]
-                  : style.color;
-                return (
-                  <div key={styleConfig.key} className="space-y-1">
-                    <p className="text-[10px] text-dark-grey font-calibre opacity-60 uppercase tracking-wider">
-                      {styleConfig.label} — {style.fontSize}pt
-                    </p>
-                    <p
-                      style={{
-                        fontFamily: fontAsset ? `Preview ${fontAsset.family}` : 'sans-serif',
-                        fontSize: `${style.fontSize}pt`,
-                        fontWeight: fontAsset?.weight || 'normal',
-                        fontStyle: fontAsset?.style || 'normal',
-                        lineHeight: style.lineHeight,
-                        letterSpacing: `${style.letterSpacing}em`,
-                        color: displayColor,
-                        textTransform: style.textTransform,
-                      }}
-                    >
-                      The quick brown fox jumps over the lazy dog
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+          <CBRECardContent className="space-y-6">
+            {textStyleCategories.map((category) => (
+              <div key={category.category} className="space-y-3">
+                <h3 className="text-xs font-calibre-semibold text-dark-grey uppercase tracking-wide border-b border-light-grey pb-2">
+                  {category.category}
+                </h3>
+                {category.styles.map((style) => {
+                  const textStyle = config.typography[style.key];
+                  const fontAsset = config.fontLibrary.find(f => f.id === textStyle.fontId);
+
+                  return (
+                    <div key={style.key} className="flex items-baseline gap-4 py-2 border-b border-lighter-grey last:border-0">
+                      <div className="w-40 flex-shrink-0">
+                        <span className="text-xs font-calibre text-dark-grey">{style.label}</span>
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: fontAsset?.family || 'Calibre',
+                          fontSize: `${Math.min(textStyle.fontSize, 48)}px`,
+                          lineHeight: textStyle.lineHeight,
+                          color: textStyle.color,
+                          textTransform: textStyle.textTransform || 'none',
+                          textAlign: textStyle.alignment || 'left',
+                        }}
+                        className="flex-1"
+                      >
+                        {style.label} - {textStyle.fontSize}pt
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </CBRECardContent>
         </CBRECard>
       </div>

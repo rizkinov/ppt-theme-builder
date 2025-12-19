@@ -97,9 +97,37 @@ export interface TextStyleConfig {
   letterSpacing: number;
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
   colorRef?: string;
+
+  // CBRE enhanced properties
+  spaceBefore?: number; // Space before paragraph in points
+  spaceAfter?: number; // Space after paragraph in points
+  bulletChar?: string; // Bullet character (e.g., '–', '•', '')
+  bulletMargin?: number; // Left margin for bullets in inches
+  bulletIndent?: number; // Hanging indent for bullets in inches
+  alignment?: 'left' | 'center' | 'right' | 'justify';
+  marginLeft?: number; // Left margin in inches
 }
 
 export interface TypographyConfig {
+  // CBRE Complete System (16 styles)
+  slideTitle: TextStyleConfig;
+  titleSlide: TextStyleConfig;
+  sectionOpener: TextStyleConfig;
+  heading1: TextStyleConfig;
+  heading2: TextStyleConfig;
+  heading3: TextStyleConfig;
+  bodyCopy: TextStyleConfig;
+  bodyBullet1: TextStyleConfig;
+  bodyBullet2: TextStyleConfig;
+  caption: TextStyleConfig;
+  captionCopy: TextStyleConfig;
+  captionBullet: TextStyleConfig;
+  presenterName: TextStyleConfig;
+  presenterDetails: TextStyleConfig;
+  dateNavigation: TextStyleConfig;
+  sectionLabel: TextStyleConfig;
+
+  // Legacy (backwards compatibility - now required with fallbacks in convertToPOTXConfig)
   heading: TextStyleConfig;
   subtitle: TextStyleConfig;
   bodyLarge: TextStyleConfig;

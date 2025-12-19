@@ -9,7 +9,7 @@ import { OOXMLThemeColors, OOXMLFontScheme, OOXMLSlideSize, OOXMLGuide, OOXMLMas
 import { generateThemeXml } from './theme-generator';
 import { generateSlideMasterXml, generateSlideMasterRelsXml } from './slide-master-generator';
 import { generateSlideLayoutXml, generateSlideLayoutRelsXml, getLayoutConfigs } from './slide-layout-generator';
-import { FontAsset, TemplateConfig } from '../types';
+import { FontAsset, TemplateConfig, CustomColor } from '../types';
 import {
   generatePresentationXml,
   generatePresentationRelsXml,
@@ -31,6 +31,7 @@ export interface POTXConfig {
   guides: Array<{ orientation: 'horizontal' | 'vertical'; position: number }>;  // position in pixels
   typography: TypographyConfig;
   selectedLayouts?: string[];  // Layout IDs to include (if not provided, include all)
+  customColors?: CustomColor[];  // Optional custom colors for PowerPoint color picker
 }
 
 /**
@@ -147,7 +148,8 @@ export async function generatePOTX(config: POTXConfig): Promise<Blob> {
       themeFolder.file('theme1.xml', generateThemeXml(
         config.name,
         config.themeColors,
-        config.fonts
+        config.fonts,
+        config.customColors
       ));
     }
 
@@ -237,8 +239,9 @@ export async function generatePOTX(config: POTXConfig): Promise<Blob> {
  */
 export function convertToPOTXConfig(appConfig: TemplateConfig): POTXConfig {
   // Resolve Major (Heading) and Minor (Body) fonts for the theme
-  const headingFontId = appConfig.typography.heading.fontId;
-  const bodyFontId = appConfig.typography.bodyLarge.fontId;
+  // Use new typography system, fallback to legacy if needed
+  const headingFontId = appConfig.typography.slideTitle?.fontId || appConfig.typography.heading?.fontId || 'financier-regular';
+  const bodyFontId = appConfig.typography.bodyCopy?.fontId || appConfig.typography.bodyLarge?.fontId || 'calibre-regular';
 
   const headingFontAsset = appConfig.fontLibrary.find(f => f.id === headingFontId);
   const bodyFontAsset = appConfig.fontLibrary.find(f => f.id === bodyFontId);
@@ -247,7 +250,7 @@ export function convertToPOTXConfig(appConfig: TemplateConfig): POTXConfig {
   const majorFont = headingFontAsset ? headingFontAsset.family : 'Calibri';
   const minorFont = bodyFontAsset ? bodyFontAsset.family : 'Calibri';
 
-  // Helper to map TextStyle to TextStyleConfig
+  // Helper to map TextStyle to TextStyleConfig (includes all CBRE enhanced properties)
   const mapStyle = (style: any): TextStyleConfig => ({
     fontId: style.fontId,
     fontSize: style.fontSize,
@@ -257,6 +260,14 @@ export function convertToPOTXConfig(appConfig: TemplateConfig): POTXConfig {
     letterSpacing: style.letterSpacing,
     textTransform: style.textTransform,
     colorRef: style.colorRef,
+    // CBRE enhanced properties
+    spaceBefore: style.spaceBefore,
+    spaceAfter: style.spaceAfter,
+    bulletChar: style.bulletChar,
+    bulletMargin: style.bulletMargin,
+    bulletIndent: style.bulletIndent,
+    alignment: style.alignment,
+    marginLeft: style.marginLeft,
   });
 
   return {
@@ -286,14 +297,48 @@ export function convertToPOTXConfig(appConfig: TemplateConfig): POTXConfig {
       position: g.position,
     })),
     selectedLayouts: appConfig.selectedLayouts,
+    customColors: appConfig.theme.customColors,
     typography: {
-      heading: mapStyle(appConfig.typography.heading),
-      subtitle: mapStyle(appConfig.typography.subtitle),
-      bodyLarge: mapStyle(appConfig.typography.bodyLarge),
-      bodySmall: mapStyle(appConfig.typography.bodySmall),
-      quote: mapStyle(appConfig.typography.quote),
-      bullet: mapStyle(appConfig.typography.bullet),
-      link: mapStyle(appConfig.typography.link),
+      // New CBRE 16-style system
+      slideTitle: mapStyle(appConfig.typography.slideTitle),
+      titleSlide: mapStyle(appConfig.typography.titleSlide),
+      sectionOpener: mapStyle(appConfig.typography.sectionOpener),
+      heading1: mapStyle(appConfig.typography.heading1),
+      heading2: mapStyle(appConfig.typography.heading2),
+      heading3: mapStyle(appConfig.typography.heading3),
+      bodyCopy: mapStyle(appConfig.typography.bodyCopy),
+      bodyBullet1: mapStyle(appConfig.typography.bodyBullet1),
+      bodyBullet2: mapStyle(appConfig.typography.bodyBullet2),
+      caption: mapStyle(appConfig.typography.caption),
+      captionCopy: mapStyle(appConfig.typography.captionCopy),
+      captionBullet: mapStyle(appConfig.typography.captionBullet),
+      presenterName: mapStyle(appConfig.typography.presenterName),
+      presenterDetails: mapStyle(appConfig.typography.presenterDetails),
+      dateNavigation: mapStyle(appConfig.typography.dateNavigation),
+      sectionLabel: mapStyle(appConfig.typography.sectionLabel),
+
+      // Legacy styles (for backwards compatibility - provide fallbacks from new styles)
+      heading: appConfig.typography.heading
+        ? mapStyle(appConfig.typography.heading)
+        : mapStyle(appConfig.typography.slideTitle),
+      subtitle: appConfig.typography.subtitle
+        ? mapStyle(appConfig.typography.subtitle)
+        : mapStyle(appConfig.typography.heading2),
+      bodyLarge: appConfig.typography.bodyLarge
+        ? mapStyle(appConfig.typography.bodyLarge)
+        : mapStyle(appConfig.typography.bodyCopy),
+      bodySmall: appConfig.typography.bodySmall
+        ? mapStyle(appConfig.typography.bodySmall)
+        : mapStyle(appConfig.typography.captionCopy),
+      quote: appConfig.typography.quote
+        ? mapStyle(appConfig.typography.quote)
+        : mapStyle(appConfig.typography.sectionLabel),
+      bullet: appConfig.typography.bullet
+        ? mapStyle(appConfig.typography.bullet)
+        : mapStyle(appConfig.typography.bodyBullet1),
+      link: appConfig.typography.link
+        ? mapStyle(appConfig.typography.link)
+        : mapStyle(appConfig.typography.bodyCopy),
     },
   };
 }

@@ -30,6 +30,14 @@ const CBRE_GRID = {
   CONTENT_Y: 252,                      // Row 3 start
   CONTENT_HEIGHT: 756,                 // Rows 3-10 (1008 - 252 = 756px)
 
+  // Footer and page number (from CBRE PPT.pptx exact measurements)
+  FOOTER_X: 54,                        // Footer left position
+  FOOTER_Y: 680,                       // Footer/page number Y position
+  FOOTER_WIDTH: 257,                   // Footer width
+  FOOTER_HEIGHT: 13,                   // Footer height
+  PAGE_NUM_X: 969,                     // Page number left position (right side)
+  PAGE_NUM_WIDTH: 257,                 // Page number width
+
   // Half widths for two-column layouts (11 columns each)
   HALF_WIDTH: 872,                     // 952 - 80 = 872px (cols 1-11)
   HALF_GAP: 16,                        // Gap between halves (952 to 968)
@@ -104,9 +112,9 @@ export function generateSlideLayoutXml(
     throw new Error(`Invalid layout index: ${layoutIndex}`);
   }
 
-  // Pre-calculate theme fonts
-  const headingFontAsset = fontLibrary.find(f => f.id === typography.heading.fontId);
-  const bodyFontAsset = fontLibrary.find(f => f.id === typography.bodyLarge.fontId);
+  // Pre-calculate theme fonts (use new styles with legacy fallback)
+  const headingFontAsset = fontLibrary.find(f => f.id === typography.slideTitle.fontId);
+  const bodyFontAsset = fontLibrary.find(f => f.id === typography.bodyCopy.fontId);
   const majorFamily = headingFontAsset ? headingFontAsset.family : 'Calibri';
   const minorFamily = bodyFontAsset ? bodyFontAsset.family : 'Calibri';
 
@@ -205,17 +213,21 @@ function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
   const xScale = slideSize.cx / 1920;
   const yScale = slideSize.cy / 1080;
 
-  // Title: Rows 4-5
+  // Title: Rows 4-5 (using titleSlide for large title slide text)
   const titleX = Math.round(CBRE_GRID.CONTENT_X * xScale);
   const titleY = Math.round(CBRE_GRID.TITLE_SLIDE_TITLE_Y * yScale);
   const titleCx = Math.round(CBRE_GRID.CONTENT_WIDTH * xScale);
   const titleCy = Math.round(CBRE_GRID.TITLE_SLIDE_TITLE_H * yScale);
 
-  // Subtitle: Rows 6-7
+  // Subtitle: Rows 6-7 (using heading2)
   const subtitleX = Math.round(CBRE_GRID.CONTENT_X * xScale);
   const subtitleY = Math.round(CBRE_GRID.TITLE_SLIDE_SUBTITLE_Y * yScale);
   const subtitleCx = Math.round(CBRE_GRID.CONTENT_WIDTH * xScale);
   const subtitleCy = Math.round(CBRE_GRID.TITLE_SLIDE_SUBTITLE_H * yScale);
+
+  // Use CBRE typography styles
+  const titleStyle = typography.titleSlide;  // 88pt Financier Display for title slide
+  const subtitleStyle = typography.heading2;  // 16pt Calibre Semibold for subtitle
 
   return `${xmlDeclaration()}<p:sldLayout xmlns:a="${NAMESPACES.a}" xmlns:r="${NAMESPACES.r}" xmlns:p="${NAMESPACES.p}" type="${config.pptxType}" preserve="1">
   <p:cSld name="${escapeXml(config.name)}">
@@ -253,14 +265,14 @@ function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0" anchor="b"/>
           <a:lstStyle>
             <a:lvl1pPr algn="ctr">
-              <a:lnSpc><a:spcPct val="${Math.round((typography.heading.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((titleStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="${getColorSchemeRef(typography.heading.colorRef)}"/>
+                  <a:schemeClr val="${getColorSchemeRef(titleStyle.colorRef)}"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -293,15 +305,15 @@ function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr marL="0" indent="0" algn="ctr">
-              <a:lnSpc><a:spcPct val="${Math.round((typography.subtitle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:lnSpc><a:spcPct val="${Math.round((subtitleStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
               <a:buNone/>
-              <a:defRPr sz="${Math.round(typography.subtitle.fontSize * 100)}" spc="${Math.round(typography.subtitle.fontSize * 100 * (typography.subtitle.letterSpacing || 0))}" b="${utils.getWeight(typography.subtitle.fontId, typography.subtitle.fontWeight)}" i="${utils.getItalic(typography.subtitle.fontId)}" ${typography.subtitle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:defRPr sz="${Math.round(subtitleStyle.fontSize * 100)}" spc="${Math.round(subtitleStyle.fontSize * 100 * (subtitleStyle.letterSpacing || 0))}" b="${utils.getWeight(subtitleStyle.fontId, subtitleStyle.fontWeight)}" i="${utils.getItalic(subtitleStyle.fontId)}" ${subtitleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                  <a:solidFill>
-                  <a:schemeClr val="${getColorSchemeRef(typography.subtitle.colorRef)}"/>
+                  <a:schemeClr val="${getColorSchemeRef(subtitleStyle.colorRef)}"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.subtitle.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.subtitle.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.subtitle.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(subtitleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(subtitleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(subtitleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -324,6 +336,9 @@ function generateTitleSlideLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
 
 function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
+  // CBRE typography styles
+  const titleStyle = typography.slideTitle;
+  const bodyStyle = typography.bodyCopy;
   const yScale = slideSize.cy / 1080;
 
   // Title: Rows 1-2
@@ -374,14 +389,14 @@ function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="${getColorSchemeRef(typography.heading.colorRef)}"/>
+                  <a:schemeClr val="${getColorSchemeRef(titleStyle.colorRef)}"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -414,14 +429,14 @@ function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}" ${bodyStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="${getColorSchemeRef(typography.bodyLarge.colorRef)}"/>
+                  <a:schemeClr val="${getColorSchemeRef(bodyStyle.colorRef)}"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -442,9 +457,12 @@ function generateTitleContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
 </p:sldLayout>`;
 }
 
-function generateSectionHeaderLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
+function generateSectionHeaderLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string{
   const xScale = slideSize.cx / 1920;
   const yScale = slideSize.cy / 1080;
+
+  // CBRE typography styles - use heading1 for section headers
+  const titleStyle = typography.heading1;
 
   // Section title: Rows 5-7 (centered vertically)
   const titleX = Math.round(CBRE_GRID.CONTENT_X * xScale);
@@ -488,14 +506,14 @@ function generateSectionHeaderLayout(slideSize: OOXMLSlideSize, config: LayoutCo
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0" anchor="ctr"/>
           <a:lstStyle>
             <a:lvl1pPr algn="ctr">
-              <a:lnSpc><a:spcPct val="${Math.round((typography.heading.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((titleStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
-                  <a:schemeClr val="${getColorSchemeRef(typography.heading.colorRef)}"/>
+                  <a:schemeClr val="${getColorSchemeRef(titleStyle.colorRef)}"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -518,6 +536,9 @@ function generateSectionHeaderLayout(slideSize: OOXMLSlideSize, config: LayoutCo
 
 function generateTwoContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
+  // CBRE typography styles
+  const titleStyle = typography.slideTitle;
+  const bodyStyle = typography.bodyCopy;
   const yScale = slideSize.cy / 1080;
 
   // Title: Rows 1-2
@@ -570,14 +591,14 @@ function generateTwoContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -610,14 +631,14 @@ function generateTwoContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}" ${bodyStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -650,14 +671,14 @@ function generateTwoContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}" ${bodyStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -680,6 +701,9 @@ function generateTwoContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
 
 function generateComparisonLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
+  // CBRE typography styles
+  const titleStyle = typography.slideTitle;
+  const bodyStyle = typography.bodyCopy;
   const yScale = slideSize.cy / 1080;
 
   // Title: Row 1 only
@@ -735,14 +759,14 @@ function generateComparisonLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -775,15 +799,15 @@ function generateComparisonLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0" anchor="b"/>
           <a:lstStyle>
             <a:lvl1pPr marL="0" indent="0">
-              <a:lnSpc><a:spcPct val="${Math.round((typography.subtitle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:lnSpc><a:spcPct val="${Math.round((typography.heading3.lineHeight || 1) * 100000)}"/></a:lnSpc>
               <a:buNone/>
-              <a:defRPr sz="${Math.round(typography.subtitle.fontSize * 100)}" spc="${Math.round(typography.subtitle.fontSize * 100 * (typography.subtitle.letterSpacing || 0))}" b="${utils.getWeight(typography.subtitle.fontId, typography.subtitle.fontWeight)}" i="${utils.getItalic(typography.subtitle.fontId)}" ${typography.subtitle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:defRPr sz="${Math.round(typography.heading3.fontSize * 100)}" spc="${Math.round(typography.heading3.fontSize * 100 * (typography.heading3.letterSpacing || 0))}" b="${utils.getWeight(typography.heading3.fontId, typography.heading3.fontWeight)}" i="${utils.getItalic(typography.heading3.fontId)}" ${typography.heading3.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.subtitle.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.subtitle.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.subtitle.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(typography.heading3.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(typography.heading3.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(typography.heading3.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -816,14 +840,14 @@ function generateComparisonLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}" ${bodyStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -856,15 +880,15 @@ function generateComparisonLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0" anchor="b"/>
           <a:lstStyle>
             <a:lvl1pPr marL="0" indent="0">
-              <a:lnSpc><a:spcPct val="${Math.round((typography.subtitle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:lnSpc><a:spcPct val="${Math.round((typography.heading3.lineHeight || 1) * 100000)}"/></a:lnSpc>
               <a:buNone/>
-              <a:defRPr sz="${Math.round(typography.subtitle.fontSize * 100)}" spc="${Math.round(typography.subtitle.fontSize * 100 * (typography.subtitle.letterSpacing || 0))}" b="${utils.getWeight(typography.subtitle.fontId, typography.subtitle.fontWeight)}" i="${utils.getItalic(typography.subtitle.fontId)}" ${typography.subtitle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:defRPr sz="${Math.round(typography.heading3.fontSize * 100)}" spc="${Math.round(typography.heading3.fontSize * 100 * (typography.heading3.letterSpacing || 0))}" b="${utils.getWeight(typography.heading3.fontId, typography.heading3.fontWeight)}" i="${utils.getItalic(typography.heading3.fontId)}" ${typography.heading3.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.subtitle.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.subtitle.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.subtitle.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(typography.heading3.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(typography.heading3.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(typography.heading3.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -897,14 +921,14 @@ function generateComparisonLayout(slideSize: OOXMLSlideSize, config: LayoutConfi
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}" ${bodyStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1025,6 +1049,8 @@ function generateQuoteLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, ty
 
 function generateTitleOnlyLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
+  // CBRE typography styles
+  const titleStyle = typography.slideTitle;
   const yScale = slideSize.cy / 1080;
 
   // Title: Rows 1-2
@@ -1069,14 +1095,14 @@ function generateTitleOnlyLayout(slideSize: OOXMLSlideSize, config: LayoutConfig
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((titleStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1101,6 +1127,9 @@ function generateTitleOnlyLayout(slideSize: OOXMLSlideSize, config: LayoutConfig
 // CBRE Grid: 7 cols = 551px, 8 cols = 632px, 7 cols = 551px
 function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
+  // CBRE typography styles
+  const titleStyle = typography.slideTitle;
+  const bodyStyle = typography.bodyCopy;
   const yScale = slideSize.cy / 1080;
 
   // Title: Rows 1-2
@@ -1157,14 +1186,14 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1197,14 +1226,14 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1237,14 +1266,14 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1277,14 +1306,14 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1309,6 +1338,9 @@ function generateThreeContentLayout(slideSize: OOXMLSlideSize, config: LayoutCon
 // CBRE Grid: Left half 874px, Right half 874px with 2 stacked boxes
 function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
+  // CBRE typography styles
+  const titleStyle = typography.slideTitle;
+  const bodyStyle = typography.bodyCopy;
   const yScale = slideSize.cy / 1080;
 
   // Title: Rows 1-2
@@ -1372,14 +1404,14 @@ function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: 
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1412,14 +1444,14 @@ function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: 
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1452,14 +1484,14 @@ function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: 
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1492,14 +1524,14 @@ function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: 
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1524,6 +1556,9 @@ function generateContentSidebarStackedLayout(slideSize: OOXMLSlideSize, config: 
 // CBRE Grid: Left sidebar ≈390px, Right content ≈1358px
 function generateSidebarContentLayout(slideSize: OOXMLSlideSize, config: LayoutConfig, typography: TypographyConfig, utils: FontUtils): string {
   const xScale = slideSize.cx / 1920;
+  // CBRE typography styles
+  const titleStyle = typography.slideTitle;
+  const bodyStyle = typography.bodyCopy;
   const yScale = slideSize.cy / 1080;
 
   // Title: Rows 1-2
@@ -1581,14 +1616,14 @@ function generateSidebarContentLayout(slideSize: OOXMLSlideSize, config: LayoutC
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.heading.fontSize * 100)}" spc="${Math.round(typography.heading.fontSize * 100 * (typography.heading.letterSpacing || 0))}" b="${utils.getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${utils.getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(titleStyle.fontSize * 100)}" spc="${Math.round(titleStyle.fontSize * 100 * (titleStyle.letterSpacing || 0))}" b="${utils.getWeight(titleStyle.fontId, titleStyle.fontWeight)}" i="${utils.getItalic(titleStyle.fontId)}" ${titleStyle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.heading.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.heading.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.heading.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(titleStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(titleStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(titleStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1621,14 +1656,14 @@ function generateSidebarContentLayout(slideSize: OOXMLSlideSize, config: LayoutC
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1661,14 +1696,14 @@ function generateSidebarContentLayout(slideSize: OOXMLSlideSize, config: LayoutC
           <a:bodyPr lIns="0" tIns="0" rIns="0" bIns="0"/>
           <a:lstStyle>
             <a:lvl1pPr>
-              <a:lnSpc><a:spcPct val="${Math.round((typography.bodyLarge.lineHeight || 1) * 100000)}"/></a:lnSpc>
-              <a:defRPr sz="${Math.round(typography.bodyLarge.fontSize * 100)}" spc="${Math.round(typography.bodyLarge.fontSize * 100 * (typography.bodyLarge.letterSpacing || 0))}" b="${utils.getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${utils.getItalic(typography.bodyLarge.fontId)}">
+              <a:lnSpc><a:spcPct val="${Math.round((bodyStyle.lineHeight || 1) * 100000)}"/></a:lnSpc>
+              <a:defRPr sz="${Math.round(bodyStyle.fontSize * 100)}" spc="${Math.round(bodyStyle.fontSize * 100 * (bodyStyle.letterSpacing || 0))}" b="${utils.getWeight(bodyStyle.fontId, bodyStyle.fontWeight)}" i="${utils.getItalic(bodyStyle.fontId)}">
                 <a:solidFill>
                   <a:schemeClr val="tx1"/>
                 </a:solidFill>
-                <a:latin typeface="${utils.getFontRefs(typography.bodyLarge.fontId).lt}"/>
-                <a:ea typeface="${utils.getFontRefs(typography.bodyLarge.fontId).ea}"/>
-                <a:cs typeface="${utils.getFontRefs(typography.bodyLarge.fontId).cs}"/>
+                <a:latin typeface="${utils.getFontRefs(bodyStyle.fontId).lt}"/>
+                <a:ea typeface="${utils.getFontRefs(bodyStyle.fontId).ea}"/>
+                <a:cs typeface="${utils.getFontRefs(bodyStyle.fontId).cs}"/>
               </a:defRPr>
             </a:lvl1pPr>
           </a:lstStyle>
@@ -1687,6 +1722,112 @@ function generateSidebarContentLayout(slideSize: OOXMLSlideSize, config: LayoutC
     <a:masterClrMapping/>
   </p:clrMapOvr>
 </p:sldLayout>`;
+}
+
+// ============================================================================
+// FOOTER AND PAGE NUMBER HELPERS (CBRE Style - Regular Text Shapes)
+// ============================================================================
+
+/**
+ * Generate footer text shape with CBRE copyright text
+ * This is a regular shape (not a placeholder) as per CBRE PPT.pptx
+ */
+function generateFooterShape(slideSize: OOXMLSlideSize, shapeId: number): string {
+  const xScale = slideSize.cx / 1920;
+  const yScale = slideSize.cy / 1080;
+
+  const x = Math.round(CBRE_GRID.FOOTER_X * 9525 * xScale);
+  const y = Math.round(CBRE_GRID.FOOTER_Y * 9525 * yScale);
+  const cx = Math.round(CBRE_GRID.FOOTER_WIDTH * 9525 * xScale);
+  const cy = Math.round(CBRE_GRID.FOOTER_HEIGHT * 9525 * yScale);
+
+  const currentYear = new Date().getFullYear();
+
+  return `<p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="${shapeId}" name="Footer"/>
+          <p:cNvSpPr>
+            <a:spLocks noGrp="1"/>
+          </p:cNvSpPr>
+          <p:nvPr/>
+        </p:nvSpPr>
+        <p:spPr>
+          <a:xfrm>
+            <a:off x="${x}" y="${y}"/>
+            <a:ext cx="${cx}" cy="${cy}"/>
+          </a:xfrm>
+          <a:prstGeom prst="rect">
+            <a:avLst/>
+          </a:prstGeom>
+        </p:spPr>
+        <p:txBody>
+          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0"/>
+          <a:lstStyle/>
+          <a:p>
+            <a:pPr algn="l"/>
+            <a:r>
+              <a:rPr lang="en-US" sz="800" dirty="0">
+                <a:latin typeface="+mn-lt"/>
+                <a:solidFill>
+                  <a:schemeClr val="tx1"/>
+                </a:solidFill>
+              </a:rPr>
+              <a:t>Confidential &amp; Proprietary | © ${currentYear} CBRE, Inc.</a:t>
+            </a:r>
+            <a:endParaRPr lang="en-US"/>
+          </a:p>
+        </p:txBody>
+      </p:sp>`;
+}
+
+/**
+ * Generate page number text shape with <#> field
+ * This is a regular shape (not a placeholder) as per CBRE PPT.pptx
+ */
+function generatePageNumberShape(slideSize: OOXMLSlideSize, shapeId: number): string {
+  const xScale = slideSize.cx / 1920;
+  const yScale = slideSize.cy / 1080;
+
+  const x = Math.round(CBRE_GRID.PAGE_NUM_X * 9525 * xScale);
+  const y = Math.round(CBRE_GRID.FOOTER_Y * 9525 * yScale);
+  const cx = Math.round(CBRE_GRID.PAGE_NUM_WIDTH * 9525 * xScale);
+  const cy = Math.round(CBRE_GRID.FOOTER_HEIGHT * 9525 * yScale);
+
+  return `<p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="${shapeId}" name="Page Number"/>
+          <p:cNvSpPr>
+            <a:spLocks noGrp="1"/>
+          </p:cNvSpPr>
+          <p:nvPr/>
+        </p:nvSpPr>
+        <p:spPr>
+          <a:xfrm>
+            <a:off x="${x}" y="${y}"/>
+            <a:ext cx="${cx}" cy="${cy}"/>
+          </a:xfrm>
+          <a:prstGeom prst="rect">
+            <a:avLst/>
+          </a:prstGeom>
+        </p:spPr>
+        <p:txBody>
+          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0"/>
+          <a:lstStyle/>
+          <a:p>
+            <a:pPr algn="r"/>
+            <a:fld id="{${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 14).toUpperCase()}}" type="slidenum">
+              <a:rPr lang="en-US" sz="800" dirty="0">
+                <a:latin typeface="+mn-lt"/>
+                <a:solidFill>
+                  <a:schemeClr val="tx1"/>
+                </a:solidFill>
+              </a:rPr>
+              <a:t>‹#›</a:t>
+            </a:fld>
+            <a:endParaRPr lang="en-US"/>
+          </a:p>
+        </p:txBody>
+      </p:sp>`;
 }
 
 // Generate slide layout relationships file

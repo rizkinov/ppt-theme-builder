@@ -187,10 +187,10 @@ export default function PreviewPage() {
               <div>
                 <p className="text-sm text-dark-grey font-calibre opacity-75">Fonts</p>
                 <p className="text-sm font-financier text-cbre-green mt-1">
-                  Heading: {config.fontLibrary.find(f => f.id === config.typography.heading.fontId)?.family || 'Unknown'}
+                  Heading: {config.fontLibrary.find(f => f.id === (config.typography.slideTitle?.fontId || config.typography.heading?.fontId))?.family || 'Unknown'}
                 </p>
                 <p className="text-sm font-calibre text-cbre-green">
-                  Body: {config.fontLibrary.find(f => f.id === config.typography.bodyLarge.fontId)?.family || 'Unknown'}
+                  Body: {config.fontLibrary.find(f => f.id === (config.typography.bodyCopy?.fontId || config.typography.bodyLarge?.fontId))?.family || 'Unknown'}
                 </p>
               </div>
             </div>

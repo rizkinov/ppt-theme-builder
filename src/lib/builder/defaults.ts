@@ -3,24 +3,66 @@
  * Using CBRE brand colors and standards
  */
 
-import { ThemeColors, TypographyStyles, LayoutTemplate, SlideDimensions, SlideSize, TemplateConfig, FontAsset } from './types';
+import { ThemeColors, TypographyStyles, LayoutTemplate, SlideDimensions, SlideSize, TemplateConfig, FontAsset, CustomColor } from './types';
 import cbreTheme from '../../../config/cbre-theme';
 
 // Default CBRE theme colors mapped to PowerPoint's 12-color scheme
+// Matches CBRE PPT.pptx exactly
 export const defaultThemeColors: ThemeColors = {
-  dark1: cbreTheme.colors['cbre-green'],      // #003F2D
-  dark2: cbreTheme.colors['dark-grey'],       // #435254
-  light1: '#FFFFFF',
-  light2: cbreTheme.colors['lighter-grey'],   // #E6E8E9
-  accent1: cbreTheme.colors['accent-green'],  // #17E88F
-  accent2: cbreTheme.colors['sage'],          // #538184
-  accent3: cbreTheme.colors['celadon'],       // #80BBAD
-  accent4: cbreTheme.colors['wheat'],         // #DBD99A
-  accent5: cbreTheme.colors['midnight'],      // #032842
-  accent6: cbreTheme.colors['cement'],        // #7F8480
-  hyperlink: cbreTheme.colors['celadon'],       // #80BBAD
-  followedHyperlink: cbreTheme.colors['sage'],  // #538184
+  dark1: '#435254',      // Dark Grey (dk1 in CBRE PPT.pptx)
+  dark2: '#DBD99A',      // Wheat (dk2 in CBRE PPT.pptx)
+  light1: '#FFFFFF',     // White (lt1 in CBRE PPT.pptx)
+  light2: '#80BBAD',     // Celadon (lt2 in CBRE PPT.pptx)
+  accent1: '#1F3765',    // Data Blue (accent1 in CBRE PPT.pptx)
+  accent2: '#3E7CA6',    // Data Lt. Blue (accent2 in CBRE PPT.pptx)
+  accent3: '#CAD1D3',    // Light Grey (accent3 in CBRE PPT.pptx)
+  accent4: '#96B3B6',    // Sage Tint (accent4 in CBRE PPT.pptx)
+  accent5: '#7F8481',    // Cement (accent5 in CBRE PPT.pptx)
+  accent6: '#003F2D',    // Primary Green (accent6 in CBRE PPT.pptx)
+  hyperlink: '#538184',  // Sage (hlink in CBRE PPT.pptx)
+  followedHyperlink: '#538184', // Sage (folHlink in CBRE PPT.pptx)
 };
+
+// Default CBRE custom colors from CBRE PPT.pptx
+// These appear in PowerPoint's color picker for easy access
+export const defaultCustomColors: CustomColor[] = [
+  // Data Visualization Colors
+  { name: 'Celadon (Data Viz 1)', color: '#80BBAD' },
+  { name: 'Dark Grey (Data Viz 2)', color: '#435254' },
+  { name: 'Accent Green (Data Viz 3)', color: '#17E88F' },
+  { name: 'Wheat (Data Viz 4)', color: '#DBD99A' },
+  { name: 'Data Orange (Data Viz 5)', color: '#D2785A' },
+  { name: 'Data Purple (Data Viz 6)', color: '#885073' },
+  { name: 'Data Lt. Purple (Data Viz 7)', color: '#A388BF' },
+  { name: 'Data Blue (Data Viz 8)', color: '#1F3765' },
+  { name: 'Data Lt. Blue (Data Viz 9)', color: '#3E7CA6' },
+  { name: 'Light Grey (Data Viz 10)', color: '#CAD1D3' },
+
+  // Special Purpose Colors
+  { name: 'Negative Value Red', color: '#AD2A2A' },
+  { name: 'DataViz Background (20% Lt. Grey)', color: '#F6F6F6' },
+
+  // Primary Brand Colors
+  { name: 'Primary Green (Primary)', color: '#003F2D' },
+  { name: 'Accent Green (Primary)', color: '#17E88F' },
+  { name: 'Dark Green (Primary)', color: '#012A2D' },
+  { name: 'Dark Grey (Primary)', color: '#435254' },
+  { name: 'Light Grey (Primary)', color: '#CAD1D3' },
+
+  // Secondary Brand Colors
+  { name: 'Midnight (Secondary)', color: '#032842' },
+  { name: 'Sage (Secondary)', color: '#538184' },
+  { name: 'Celadon (Secondary)', color: '#80BBAD' },
+  { name: 'Wheat (Secondary)', color: '#DBD99A' },
+  { name: 'Cement (Secondary)', color: '#7F8480' },
+
+  // Secondary Brand Tints
+  { name: 'Midnight Tint (Secondary)', color: '#778F9C' },
+  { name: 'Sage Tint (Secondary)', color: '#96B3B6' },
+  { name: 'Celadon Tint (Secondary)', color: '#C0D4CB' },
+  { name: 'Wheat Tint (Secondary)', color: '#EFECD2' },
+  { name: 'Cement Tint (Secondary)', color: '#CBCDCB' },
+];
 
 // Default Font Library
 export const defaultFontLibrary: FontAsset[] = [
@@ -40,74 +82,310 @@ export const defaultFontLibrary: FontAsset[] = [
   { id: 'financier-medium-italic', name: 'Financier Display Medium Italic', family: 'Financier Display', weight: 500, style: 'italic', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-MediumItalic.otf' },
   { id: 'financier-semibold', name: 'Financier Display SemiBold', family: 'Financier Display', weight: 600, style: 'normal', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-Semibold.otf' },
   { id: 'financier-semibold-italic', name: 'Financier Display SemiBold Italic', family: 'Financier Display', weight: 600, style: 'italic', source: 'default', url: '/fonts/Financier Display/FinancierDisplay-SemiboldItalic.otf' },
+
+  // Space Mono Family (for dates, navigation, technical labels)
+  { id: 'space-mono-bold', name: 'Space Mono Bold', family: 'Space Mono', weight: 700, style: 'normal', source: 'default', url: '/fonts/Space Mono/SpaceMono-Bold.ttf' },
+  { id: 'space-mono-regular', name: 'Space Mono Regular', family: 'Space Mono', weight: 400, style: 'normal', source: 'default', url: '/fonts/Space Mono/SpaceMono-Regular.ttf' },
 ];
 
-// Default typography styles - CBRE Standard
-// CBRE Standard Text Scale: 56/34/28/20/14
-// Line spacing: CBRE Standard (heading 0.9, subtitle/body 1.0, quote 1.1)
+// Complete CBRE Typography System - 16 Named Styles
+// Based on CBRE PPT.pptx analysis
+// Line spacing: 75% (tight titles), 80% (display), 90% (headings), 100% (body)
 // Colors use colorRef to automatically sync with theme colors
 export const defaultTypography: TypographyStyles = {
+  // ============================================================================
+  // TITLES & DISPLAY
+  // ============================================================================
+
+  slideTitle: {
+    fontId: 'financier-regular',
+    fontSize: 28,
+    lineHeight: 0.9, // 90% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1 (dark text)
+    textTransform: 'none',
+    alignment: 'left',
+  },
+
+  titleSlide: {
+    fontId: 'financier-regular',
+    fontSize: 88,
+    lineHeight: 0.75, // 75% line spacing (tight)
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1 (dark text)
+    textTransform: 'none',
+    alignment: 'left',
+  },
+
+  sectionOpener: {
+    fontId: 'calibre-light',
+    fontSize: 280,
+    lineHeight: 0.8, // 80% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1 (dark text)
+    textTransform: 'none',
+    alignment: 'right',
+  },
+
+  // ============================================================================
+  // HEADINGS
+  // ============================================================================
+
+  heading1: {
+    fontId: 'calibre-light',
+    fontSize: 22,
+    lineHeight: 0.9, // 90% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 12,
+    spaceAfter: 6,
+    alignment: 'left',
+  },
+
+  heading2: {
+    fontId: 'calibre-semibold',
+    fontSize: 16,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceAfter: 6,
+    alignment: 'left',
+  },
+
+  heading3: {
+    fontId: 'calibre-semibold',
+    fontSize: 12,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 6,
+    spaceAfter: 0,
+    alignment: 'left',
+  },
+
+  // ============================================================================
+  // BODY & BULLETS
+  // ============================================================================
+
+  bodyCopy: {
+    fontId: 'calibre-regular',
+    fontSize: 12,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 3,
+    spaceAfter: 3,
+    alignment: 'left',
+  },
+
+  bodyBullet1: {
+    fontId: 'calibre-regular',
+    fontSize: 12,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 3,
+    spaceAfter: 3,
+    bulletChar: '–', // en dash (U+2013)
+    bulletMargin: 0.19, // ~171450 EMU
+    bulletIndent: -0.19, // hanging indent
+    alignment: 'left',
+  },
+
+  bodyBullet2: {
+    fontId: 'calibre-regular',
+    fontSize: 12,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 3,
+    spaceAfter: 3,
+    bulletChar: '•', // bullet point (U+2022)
+    bulletMargin: 0.4, // ~365760 EMU
+    bulletIndent: -0.2, // hanging indent (~182880 EMU)
+    alignment: 'left',
+  },
+
+  // ============================================================================
+  // CAPTIONS
+  // ============================================================================
+
+  caption: {
+    fontId: 'calibre-semibold',
+    fontSize: 10.5,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 6,
+    spaceAfter: 0,
+    alignment: 'left',
+  },
+
+  captionCopy: {
+    fontId: 'calibre-regular',
+    fontSize: 10.5,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 3,
+    spaceAfter: 3,
+    alignment: 'left',
+  },
+
+  captionBullet: {
+    fontId: 'calibre-regular',
+    fontSize: 10.5,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    spaceBefore: 2,
+    spaceAfter: 2,
+    bulletChar: '–', // en dash (U+2013)
+    bulletMargin: 0.19, // ~171450 EMU
+    bulletIndent: -0.19, // hanging indent
+    alignment: 'left',
+  },
+
+  // ============================================================================
+  // SPECIAL ELEMENTS
+  // ============================================================================
+
+  presenterName: {
+    fontId: 'calibre-semibold',
+    fontSize: 16,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    alignment: 'left',
+  },
+
+  presenterDetails: {
+    fontId: 'calibre-regular',
+    fontSize: 16,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1
+    textTransform: 'none',
+    alignment: 'left',
+  },
+
+  dateNavigation: {
+    fontId: 'space-mono-bold',
+    fontSize: 10.5,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#435254',
+    colorRef: 'dark1', // tx1 (can be overridden per layout)
+    textTransform: 'uppercase', // ALL CAPS
+    alignment: 'center',
+  },
+
+  sectionLabel: {
+    fontId: 'space-mono-bold',
+    fontSize: 10.5,
+    lineHeight: 1.0, // 100% line spacing
+    letterSpacing: 0,
+    color: '#17E88F',
+    colorRef: 'accent1', // Accent Green
+    textTransform: 'uppercase', // ALL CAPS
+    alignment: 'center',
+  },
+
+  // ============================================================================
+  // LEGACY STYLES (backwards compatibility - kept to prevent breaking changes)
+  // ============================================================================
+
   heading: {
     fontId: 'financier-regular',
     fontSize: 56,
     lineHeight: 0.9,
     letterSpacing: 0,
     color: '#003F2D',
-    colorRef: 'dark1', // CBRE Green - uses theme dark1
+    colorRef: 'accent6',
     textTransform: 'none',
   },
+
   subtitle: {
     fontId: 'calibre-medium',
     fontSize: 34,
     lineHeight: 1.0,
     letterSpacing: 0,
     color: '#435254',
-    colorRef: 'dark2', // Dark Grey - uses theme dark2
+    colorRef: 'dark1',
     textTransform: 'none',
   },
+
   bodyLarge: {
     fontId: 'calibre-light',
     fontSize: 20,
     lineHeight: 1.0,
     letterSpacing: 0,
     color: '#435254',
-    colorRef: 'dark2', // Dark Grey - uses theme dark2
+    colorRef: 'dark1',
     textTransform: 'none',
   },
+
   bodySmall: {
     fontId: 'calibre-regular',
     fontSize: 14,
     lineHeight: 1.0,
     letterSpacing: 0,
     color: '#435254',
-    colorRef: 'dark2', // Dark Grey - uses theme dark2
+    colorRef: 'dark1',
     textTransform: 'none',
   },
+
   quote: {
     fontId: 'financier-regular',
     fontSize: 28,
     lineHeight: 1.1,
     letterSpacing: 0,
     color: '#538184',
-    colorRef: 'accent2', // Sage - uses theme accent2
+    colorRef: 'hyperlink',
     textTransform: 'none',
   },
+
   bullet: {
     fontId: 'calibre-regular',
     fontSize: 14,
     lineHeight: 1.0,
     letterSpacing: 0,
     color: '#435254',
-    colorRef: 'dark2', // Dark Grey - uses theme dark2
+    colorRef: 'dark1',
     textTransform: 'none',
   },
+
   link: {
     fontId: 'calibre-regular',
     fontSize: 14,
     lineHeight: 1.0,
     letterSpacing: 0,
     color: defaultThemeColors.hyperlink,
-    colorRef: 'hyperlink', // Uses theme hyperlink color
+    colorRef: 'hyperlink',
     textTransform: 'none',
   },
 };
@@ -581,6 +859,7 @@ export const defaultTemplateConfig: TemplateConfig = {
   name: 'My PowerPoint Template',
   theme: {
     colors: defaultThemeColors,
+    customColors: defaultCustomColors,
   },
   fontLibrary: defaultFontLibrary,
   typography: defaultTypography,

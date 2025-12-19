@@ -7,6 +7,16 @@ import { xmlDeclaration, NAMESPACES } from './xml-utils';
 import { OOXMLSlideSize, TypographyConfig, OOXMLFontScheme, OOXMLMasterGuide } from './types';
 import { FontAsset } from '../types';
 
+// CBRE Grid Constants (matching slide-layout-generator.ts)
+const CBRE_GRID = {
+  CONTENT_X: 80,
+  CONTENT_WIDTH: 1760,
+  TITLE_Y: 72,
+  TITLE_HEIGHT: 164,
+  CONTENT_Y: 252,
+  CONTENT_HEIGHT: 756,
+};
+
 export interface FontUtils {
   getFontRefs: (fontId: string) => { lt: string; ea: string; cs: string };
   getWeight: (fontId: string, styleWeight?: number) => string;
@@ -93,9 +103,8 @@ export function generateSlideMasterXml(
       </p:grpSpPr>
       ${generateTitlePlaceholder(slideSize)}
       ${generateBodyPlaceholder(slideSize)}
-      ${generateDatePlaceholder(slideSize)}
-      ${generateFooterPlaceholder(slideSize)}
-      ${generateSlideNumberPlaceholder(slideSize)}
+      ${generateFooterShape(slideSize)}
+      ${generatePageNumberShape(slideSize)}
     </p:spTree>
   </p:cSld>
   <p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>
@@ -105,16 +114,15 @@ export function generateSlideMasterXml(
 }
 
 function generateTitlePlaceholder(slideSize: OOXMLSlideSize): string {
-  // CBRE Grid alignment: exact pixel values converted to EMUs
-  // For 16:9: 1920x1080px at 6350 EMUs per pixel
-  const emuPerPixelX = slideSize.cx / 1920;
-  const emuPerPixelY = slideSize.cy / 1080;
+  // CBRE Grid alignment: use grid constants
+  const xScale = slideSize.cx / 1920;
+  const yScale = slideSize.cy / 1080;
 
-  // CBRE Grid: left margin 81px, content width 1758px, title height 72px
-  const x = Math.round(81 * emuPerPixelX);
-  const y = Math.round(91 * emuPerPixelY);  // Aligned to content-top guide
-  const cx = Math.round(1758 * emuPerPixelX);
-  const cy = Math.round(80 * emuPerPixelY);  // Title height
+  // Title: Rows 1-2
+  const x = Math.round(CBRE_GRID.CONTENT_X * xScale);
+  const y = Math.round(CBRE_GRID.TITLE_Y * yScale);
+  const cx = Math.round(CBRE_GRID.CONTENT_WIDTH * xScale);
+  const cy = Math.round(CBRE_GRID.TITLE_HEIGHT * yScale);
 
   return `<p:sp>
         <p:nvSpPr>
@@ -150,15 +158,15 @@ function generateTitlePlaceholder(slideSize: OOXMLSlideSize): string {
 }
 
 function generateBodyPlaceholder(slideSize: OOXMLSlideSize): string {
-  // CBRE Grid alignment: exact pixel values converted to EMUs
-  const emuPerPixelX = slideSize.cx / 1920;
-  const emuPerPixelY = slideSize.cy / 1080;
+  // CBRE Grid alignment: use grid constants
+  const xScale = slideSize.cx / 1920;
+  const yScale = slideSize.cy / 1080;
 
-  // CBRE Grid: left margin 81px, body starts at 194px (+2px gap from title)
-  const x = Math.round(81 * emuPerPixelX);
-  const y = Math.round(194 * emuPerPixelY);  // +2px gap from title
-  const cx = Math.round(1758 * emuPerPixelX);
-  const cy = Math.round(795 * emuPerPixelY);  // Content height
+  // Body: Rows 3-10
+  const x = Math.round(CBRE_GRID.CONTENT_X * xScale);
+  const y = Math.round(CBRE_GRID.CONTENT_Y * yScale);
+  const cx = Math.round(CBRE_GRID.CONTENT_WIDTH * xScale);
+  const cy = Math.round(CBRE_GRID.CONTENT_HEIGHT * yScale);
 
   return `<p:sp>
         <p:nvSpPr>
@@ -222,148 +230,6 @@ function generateBodyPlaceholder(slideSize: OOXMLSlideSize): string {
       </p:sp>`;
 }
 
-function generateDatePlaceholder(slideSize: OOXMLSlideSize): string {
-  const x = Math.round(slideSize.cx * 0.0625);
-  const y = Math.round(slideSize.cy * 0.926);
-  const cx = Math.round(slideSize.cx * 0.208);
-  const cy = Math.round(slideSize.cy * 0.056);
-
-  return `<p:sp>
-        <p:nvSpPr>
-          <p:cNvPr id="4" name="Date Placeholder 3"/>
-          <p:cNvSpPr>
-            <a:spLocks noGrp="1"/>
-          </p:cNvSpPr>
-          <p:nvPr>
-            <p:ph type="dt" sz="half" idx="10"/>
-          </p:nvPr>
-        </p:nvSpPr>
-        <p:spPr>
-          <a:xfrm>
-            <a:off x="${x}" y="${y}"/>
-            <a:ext cx="${cx}" cy="${cy}"/>
-          </a:xfrm>
-          <a:prstGeom prst="rect">
-            <a:avLst/>
-          </a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/>
-          <a:lstStyle>
-            <a:lvl1pPr algn="l">
-              <a:defRPr sz="1200">
-                <a:solidFill>
-                  <a:schemeClr val="tx1">
-                    <a:tint val="75000"/>
-                  </a:schemeClr>
-                </a:solidFill>
-              </a:defRPr>
-            </a:lvl1pPr>
-          </a:lstStyle>
-          <a:p>
-            <a:fld id="{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}" type="datetimeFigureOut">
-              <a:rPr lang="en-US" smtClean="0"/>
-              <a:t>1/1/2025</a:t>
-            </a:fld>
-            <a:endParaRPr lang="en-US"/>
-          </a:p>
-        </p:txBody>
-      </p:sp>`;
-}
-
-function generateFooterPlaceholder(slideSize: OOXMLSlideSize): string {
-  const x = Math.round(slideSize.cx * 0.333);
-  const y = Math.round(slideSize.cy * 0.926);
-  const cx = Math.round(slideSize.cx * 0.333);
-  const cy = Math.round(slideSize.cy * 0.056);
-
-  return `<p:sp>
-        <p:nvSpPr>
-          <p:cNvPr id="5" name="Footer Placeholder 4"/>
-          <p:cNvSpPr>
-            <a:spLocks noGrp="1"/>
-          </p:cNvSpPr>
-          <p:nvPr>
-            <p:ph type="ftr" sz="quarter" idx="11"/>
-          </p:nvPr>
-        </p:nvSpPr>
-        <p:spPr>
-          <a:xfrm>
-            <a:off x="${x}" y="${y}"/>
-            <a:ext cx="${cx}" cy="${cy}"/>
-          </a:xfrm>
-          <a:prstGeom prst="rect">
-            <a:avLst/>
-          </a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/>
-          <a:lstStyle>
-            <a:lvl1pPr algn="ctr">
-              <a:defRPr sz="1200">
-                <a:solidFill>
-                  <a:schemeClr val="tx1">
-                    <a:tint val="75000"/>
-                  </a:schemeClr>
-                </a:solidFill>
-              </a:defRPr>
-            </a:lvl1pPr>
-          </a:lstStyle>
-          <a:p>
-            <a:endParaRPr lang="en-US"/>
-          </a:p>
-        </p:txBody>
-      </p:sp>`;
-}
-
-function generateSlideNumberPlaceholder(slideSize: OOXMLSlideSize): string {
-  const x = Math.round(slideSize.cx * 0.729);
-  const y = Math.round(slideSize.cy * 0.926);
-  const cx = Math.round(slideSize.cx * 0.208);
-  const cy = Math.round(slideSize.cy * 0.056);
-
-  return `<p:sp>
-        <p:nvSpPr>
-          <p:cNvPr id="6" name="Slide Number Placeholder 5"/>
-          <p:cNvSpPr>
-            <a:spLocks noGrp="1"/>
-          </p:cNvSpPr>
-          <p:nvPr>
-            <p:ph type="sldNum" sz="quarter" idx="12"/>
-          </p:nvPr>
-        </p:nvSpPr>
-        <p:spPr>
-          <a:xfrm>
-            <a:off x="${x}" y="${y}"/>
-            <a:ext cx="${cx}" cy="${cy}"/>
-          </a:xfrm>
-          <a:prstGeom prst="rect">
-            <a:avLst/>
-          </a:prstGeom>
-        </p:spPr>
-        <p:txBody>
-          <a:bodyPr vert="horz" lIns="0" tIns="0" rIns="0" bIns="0" rtlCol="0" anchor="ctr"/>
-          <a:lstStyle>
-            <a:lvl1pPr algn="r">
-              <a:defRPr sz="1200">
-                <a:solidFill>
-                  <a:schemeClr val="tx1">
-                    <a:tint val="75000"/>
-                  </a:schemeClr>
-                </a:solidFill>
-              </a:defRPr>
-            </a:lvl1pPr>
-          </a:lstStyle>
-          <a:p>
-            <a:fld id="{B2C3D4E5-F6A7-8901-BCDE-F23456789012}" type="slidenum">
-              <a:rPr lang="en-US" smtClean="0"/>
-              <a:t>‹#›</a:t>
-            </a:fld>
-            <a:endParaRPr lang="en-US"/>
-          </a:p>
-        </p:txBody>
-      </p:sp>`;
-}
 
 /**
  * Generate the PowerPoint 2012+ extension list with master slide guides
@@ -406,135 +272,231 @@ function generateSlideLayoutIdList(layoutCount: number): string {
 // ... Placeholders same as before ...
 
 function generateTextStyles(typography: TypographyConfig, fontLibrary: FontAsset[], utils: FontUtils): string {
-  // Font sizes in OOXML are in hundredths of a point (so 48pt = 4800, 20pt = 2000)
-  const titleSize = typography.heading.fontSize * 100;
-  const bodySize = typography.bodyLarge.fontSize * 100;
+  // OOXML CBRE Complete Typography System - 16 Named Styles
+  // Font sizes in OOXML are in hundredths of a point (so 28pt = 2800, 12pt = 1200)
 
-  // Helper to calculate line spacing (percentage)
+  // Helper to calculate line spacing (percentage) - 100000 = 100%
   const getLnSpc = (lh?: number) => Math.round((lh || 1.0) * 100000);
 
   // Helper to calculate letter spacing (hundredths of a point)
-  // em * fontSize * 100
   const getSpc = (size: number, spacing?: number) => Math.round(size * 100 * (spacing || 0));
 
-  const fonts = {
-    heading: utils.getFontRefs(typography.heading.fontId),
-    bodyLarge: utils.getFontRefs(typography.bodyLarge.fontId),
+  // Helper to convert points to OOXML (for spacing before/after)
+  // In OOXML, spacing is in hundredths of a point: 12pt = 1200
+  const getPtPct = (pts?: number) => Math.round((pts || 0) * 100); // 12pt = 1200
+
+  // Helper to convert inches to EMUs
+  const inchesToEMU = (inches?: number) => Math.round((inches || 0) * 914400);
+
+  // Helper to generate alignment attribute
+  const getAlign = (align?: string) => {
+    switch (align) {
+      case 'center': return 'ctr';
+      case 'right': return 'r';
+      case 'justify': return 'just';
+      default: return 'l'; // left is default
+    }
   };
 
   const getWeight = utils.getWeight;
   const getItalic = utils.getItalic;
 
+  // Get font references for all CBRE styles
+  const slideTitle = typography.slideTitle;
+  const bodyCopy = typography.bodyCopy;
+  const bodyBullet1 = typography.bodyBullet1;
+  const bodyBullet2 = typography.bodyBullet2;
+  const heading1 = typography.heading1;
+  const heading2 = typography.heading2;
+  const heading3 = typography.heading3;
+  const caption = typography.caption;
+  const captionCopy = typography.captionCopy;
+
+  const fonts = {
+    slideTitle: utils.getFontRefs(slideTitle.fontId),
+    bodyCopy: utils.getFontRefs(bodyCopy.fontId),
+    bodyBullet1: utils.getFontRefs(bodyBullet1.fontId),
+    bodyBullet2: utils.getFontRefs(bodyBullet2.fontId),
+    heading1: utils.getFontRefs(heading1.fontId),
+    heading2: utils.getFontRefs(heading2.fontId),
+    heading3: utils.getFontRefs(heading3.fontId),
+    caption: utils.getFontRefs(caption.fontId),
+    captionCopy: utils.getFontRefs(captionCopy.fontId),
+  };
+
   return `<p:txStyles>
     <p:titleStyle>
-      <a:lvl1pPr algn="ctr" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <a:lvl1pPr algn="${getAlign(slideTitle.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
         <a:lnSpc>
-          <a:spcPct val="${getLnSpc(typography.heading.lineHeight)}"/>
+          <a:spcPct val="${getLnSpc(slideTitle.lineHeight)}"/>
         </a:lnSpc>
-        <a:spcBef>
-          <a:spcPct val="0"/>
-        </a:spcBef>
+        ${slideTitle.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(slideTitle.spaceBefore)}"/></a:spcBef>` : ''}
+        ${slideTitle.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(slideTitle.spaceAfter)}"/></a:spcAft>` : ''}
         <a:buNone/>
-        <a:defRPr sz="${Math.round(titleSize)}" kern="1200" spc="${getSpc(typography.heading.fontSize, typography.heading.letterSpacing)}" b="${getWeight(typography.heading.fontId, typography.heading.fontWeight)}" i="${getItalic(typography.heading.fontId)}" ${typography.heading.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+        <a:defRPr sz="${Math.round(slideTitle.fontSize * 100)}" kern="1200" spc="${getSpc(slideTitle.fontSize, slideTitle.letterSpacing)}" b="${getWeight(slideTitle.fontId, slideTitle.fontWeight)}" i="${getItalic(slideTitle.fontId)}" ${slideTitle.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="${fonts.heading.lt}"/>
-          <a:ea typeface="${fonts.heading.ea}"/>
-          <a:cs typeface="${fonts.heading.cs}"/>
+          <a:latin typeface="${fonts.slideTitle.lt}"/>
+          <a:ea typeface="${fonts.slideTitle.ea}"/>
+          <a:cs typeface="${fonts.slideTitle.cs}"/>
         </a:defRPr>
       </a:lvl1pPr>
     </p:titleStyle>
     <p:bodyStyle>
-      <a:lvl1pPr marL="0" indent="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <!-- Level 1: Heading 1 (22pt Calibre Light) -->
+      <a:lvl1pPr marL="${inchesToEMU(heading1.marginLeft)}" algn="${getAlign(heading1.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
         <a:lnSpc>
-          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+          <a:spcPct val="${getLnSpc(heading1.lineHeight)}"/>
         </a:lnSpc>
-        <a:spcBef>
-          <a:spcPct val="20000"/>
-        </a:spcBef>
+        ${heading1.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(heading1.spaceBefore)}"/></a:spcBef>` : ''}
+        ${heading1.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(heading1.spaceAfter)}"/></a:spcAft>` : ''}
         <a:buNone/>
-        <a:defRPr sz="${Math.round(bodySize)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize, typography.bodyLarge.letterSpacing)}" b="${getWeight(typography.bodyLarge.fontId, typography.bodyLarge.fontWeight)}" i="${getItalic(typography.bodyLarge.fontId)}" ${typography.bodyLarge.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+        <a:defRPr sz="${Math.round(heading1.fontSize * 100)}" kern="1200" spc="${getSpc(heading1.fontSize, heading1.letterSpacing)}" b="${getWeight(heading1.fontId, heading1.fontWeight)}" i="${getItalic(heading1.fontId)}" ${heading1.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="${fonts.bodyLarge.lt}"/>
-          <a:ea typeface="${fonts.bodyLarge.ea}"/>
-          <a:cs typeface="${fonts.bodyLarge.cs}"/>
+          <a:latin typeface="${fonts.heading1.lt}"/>
+          <a:ea typeface="${fonts.heading1.ea}"/>
+          <a:cs typeface="${fonts.heading1.cs}"/>
         </a:defRPr>
       </a:lvl1pPr>
-      <a:lvl2pPr marL="742950" indent="-285750" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <!-- Level 2: Heading 2 (16pt Calibre Semibold) -->
+      <a:lvl2pPr marL="${inchesToEMU(heading2.marginLeft)}" algn="${getAlign(heading2.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
         <a:lnSpc>
-          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+          <a:spcPct val="${getLnSpc(heading2.lineHeight)}"/>
         </a:lnSpc>
-        <a:spcBef>
-          <a:spcPct val="20000"/>
-        </a:spcBef>
-        <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
-        <a:buChar char="–"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.9)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.9, typography.bodyLarge.letterSpacing)}">
+        ${heading2.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(heading2.spaceBefore)}"/></a:spcBef>` : ''}
+        ${heading2.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(heading2.spaceAfter)}"/></a:spcAft>` : ''}
+        <a:buNone/>
+        <a:defRPr sz="${Math.round(heading2.fontSize * 100)}" kern="1200" spc="${getSpc(heading2.fontSize, heading2.letterSpacing)}" b="${getWeight(heading2.fontId, heading2.fontWeight)}" i="${getItalic(heading2.fontId)}" ${heading2.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="${fonts.bodyLarge.lt}"/>
-          <a:ea typeface="${fonts.bodyLarge.ea}"/>
-          <a:cs typeface="${fonts.bodyLarge.cs}"/>
+          <a:latin typeface="${fonts.heading2.lt}"/>
+          <a:ea typeface="${fonts.heading2.ea}"/>
+          <a:cs typeface="${fonts.heading2.cs}"/>
         </a:defRPr>
       </a:lvl2pPr>
-      <a:lvl3pPr marL="1143000" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <!-- Level 3: Body Copy (12pt Calibre) -->
+      <a:lvl3pPr marL="${inchesToEMU(bodyCopy.marginLeft)}" algn="${getAlign(bodyCopy.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
         <a:lnSpc>
-          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+          <a:spcPct val="${getLnSpc(bodyCopy.lineHeight)}"/>
         </a:lnSpc>
-        <a:spcBef>
-          <a:spcPct val="20000"/>
-        </a:spcBef>
-        <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
-        <a:buChar char="•"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.8)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.8, typography.bodyLarge.letterSpacing)}">
+        ${bodyCopy.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(bodyCopy.spaceBefore)}"/></a:spcBef>` : ''}
+        ${bodyCopy.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(bodyCopy.spaceAfter)}"/></a:spcAft>` : ''}
+        <a:buNone/>
+        <a:defRPr sz="${Math.round(bodyCopy.fontSize * 100)}" kern="1200" spc="${getSpc(bodyCopy.fontSize, bodyCopy.letterSpacing)}" b="${getWeight(bodyCopy.fontId, bodyCopy.fontWeight)}" i="${getItalic(bodyCopy.fontId)}" ${bodyCopy.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="${fonts.bodyLarge.lt}"/>
-          <a:ea typeface="${fonts.bodyLarge.ea}"/>
-          <a:cs typeface="${fonts.bodyLarge.cs}"/>
+          <a:latin typeface="${fonts.bodyCopy.lt}"/>
+          <a:ea typeface="${fonts.bodyCopy.ea}"/>
+          <a:cs typeface="${fonts.bodyCopy.cs}"/>
         </a:defRPr>
       </a:lvl3pPr>
-      <a:lvl4pPr marL="1600200" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <!-- Level 4: Body Bullet 1 (12pt Calibre, en dash) -->
+      <a:lvl4pPr marL="${inchesToEMU(bodyBullet1.bulletMargin)}" indent="${inchesToEMU(bodyBullet1.bulletIndent)}" algn="${getAlign(bodyBullet1.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
         <a:lnSpc>
-          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+          <a:spcPct val="${getLnSpc(bodyBullet1.lineHeight)}"/>
         </a:lnSpc>
-        <a:spcBef>
-          <a:spcPct val="20000"/>
-        </a:spcBef>
-        <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
-        <a:buChar char="–"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.7)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.7, typography.bodyLarge.letterSpacing)}">
+        ${bodyBullet1.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(bodyBullet1.spaceBefore)}"/></a:spcBef>` : ''}
+        ${bodyBullet1.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(bodyBullet1.spaceAfter)}"/></a:spcAft>` : ''}
+        ${bodyBullet1.bulletChar ? `<a:buChar char="${bodyBullet1.bulletChar}"/>` : '<a:buNone/>'}
+        <a:defRPr sz="${Math.round(bodyBullet1.fontSize * 100)}" kern="1200" spc="${getSpc(bodyBullet1.fontSize, bodyBullet1.letterSpacing)}" b="${getWeight(bodyBullet1.fontId, bodyBullet1.fontWeight)}" i="${getItalic(bodyBullet1.fontId)}" ${bodyBullet1.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="${fonts.bodyLarge.lt}"/>
-          <a:ea typeface="${fonts.bodyLarge.ea}"/>
-          <a:cs typeface="${fonts.bodyLarge.cs}"/>
+          <a:latin typeface="${fonts.bodyBullet1.lt}"/>
+          <a:ea typeface="${fonts.bodyBullet1.ea}"/>
+          <a:cs typeface="${fonts.bodyBullet1.cs}"/>
         </a:defRPr>
       </a:lvl4pPr>
-      <a:lvl5pPr marL="2057400" indent="-228600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+      <!-- Level 5: Body Bullet 2 (12pt Calibre, bullet point) -->
+      <a:lvl5pPr marL="${inchesToEMU(bodyBullet2.bulletMargin)}" indent="${inchesToEMU(bodyBullet2.bulletIndent)}" algn="${getAlign(bodyBullet2.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
         <a:lnSpc>
-          <a:spcPct val="${getLnSpc(typography.bodyLarge.lineHeight)}"/>
+          <a:spcPct val="${getLnSpc(bodyBullet2.lineHeight)}"/>
         </a:lnSpc>
-        <a:spcBef>
-          <a:spcPct val="20000"/>
-        </a:spcBef>
-        <a:buFont typeface="Arial" pitchFamily="34" charset="0"/>
-        <a:buChar char="»"/>
-        <a:defRPr sz="${Math.round(bodySize * 0.7)}" kern="1200" spc="${getSpc(typography.bodyLarge.fontSize * 0.7, typography.bodyLarge.letterSpacing)}">
+        ${bodyBullet2.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(bodyBullet2.spaceBefore)}"/></a:spcBef>` : ''}
+        ${bodyBullet2.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(bodyBullet2.spaceAfter)}"/></a:spcAft>` : ''}
+        ${bodyBullet2.bulletChar ? `<a:buChar char="${bodyBullet2.bulletChar}"/>` : '<a:buNone/>'}
+        <a:defRPr sz="${Math.round(bodyBullet2.fontSize * 100)}" kern="1200" spc="${getSpc(bodyBullet2.fontSize, bodyBullet2.letterSpacing)}" b="${getWeight(bodyBullet2.fontId, bodyBullet2.fontWeight)}" i="${getItalic(bodyBullet2.fontId)}" ${bodyBullet2.textTransform === 'uppercase' ? 'cap="all"' : ''}>
           <a:solidFill>
             <a:schemeClr val="tx1"/>
           </a:solidFill>
-          <a:latin typeface="${fonts.bodyLarge.lt}"/>
-          <a:ea typeface="${fonts.bodyLarge.ea}"/>
-          <a:cs typeface="${fonts.bodyLarge.cs}"/>
+          <a:latin typeface="${fonts.bodyBullet2.lt}"/>
+          <a:ea typeface="${fonts.bodyBullet2.ea}"/>
+          <a:cs typeface="${fonts.bodyBullet2.cs}"/>
         </a:defRPr>
       </a:lvl5pPr>
+      <!-- Level 6: Heading 3 (12pt Calibre Semibold) -->
+      <a:lvl6pPr marL="${inchesToEMU(heading3.marginLeft)}" algn="${getAlign(heading3.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(heading3.lineHeight)}"/>
+        </a:lnSpc>
+        ${heading3.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(heading3.spaceBefore)}"/></a:spcBef>` : ''}
+        ${heading3.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(heading3.spaceAfter)}"/></a:spcAft>` : ''}
+        <a:buNone/>
+        <a:defRPr sz="${Math.round(heading3.fontSize * 100)}" kern="1200" spc="${getSpc(heading3.fontSize, heading3.letterSpacing)}" b="${getWeight(heading3.fontId, heading3.fontWeight)}" i="${getItalic(heading3.fontId)}" ${heading3.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+          <a:solidFill>
+            <a:schemeClr val="tx1"/>
+          </a:solidFill>
+          <a:latin typeface="${fonts.heading3.lt}"/>
+          <a:ea typeface="${fonts.heading3.ea}"/>
+          <a:cs typeface="${fonts.heading3.cs}"/>
+        </a:defRPr>
+      </a:lvl6pPr>
+      <!-- Level 7: Caption (10.5pt Calibre Semibold) -->
+      <a:lvl7pPr marL="${inchesToEMU(caption.marginLeft)}" algn="${getAlign(caption.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(caption.lineHeight)}"/>
+        </a:lnSpc>
+        ${caption.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(caption.spaceBefore)}"/></a:spcBef>` : ''}
+        ${caption.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(caption.spaceAfter)}"/></a:spcAft>` : ''}
+        <a:buNone/>
+        <a:defRPr sz="${Math.round(caption.fontSize * 100)}" kern="1200" spc="${getSpc(caption.fontSize, caption.letterSpacing)}" b="${getWeight(caption.fontId, caption.fontWeight)}" i="${getItalic(caption.fontId)}" ${caption.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+          <a:solidFill>
+            <a:schemeClr val="tx1"/>
+          </a:solidFill>
+          <a:latin typeface="${fonts.caption.lt}"/>
+          <a:ea typeface="${fonts.caption.ea}"/>
+          <a:cs typeface="${fonts.caption.cs}"/>
+        </a:defRPr>
+      </a:lvl7pPr>
+      <!-- Level 8: Caption Copy (10.5pt Calibre) -->
+      <a:lvl8pPr marL="${inchesToEMU(captionCopy.marginLeft)}" algn="${getAlign(captionCopy.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(captionCopy.lineHeight)}"/>
+        </a:lnSpc>
+        ${captionCopy.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(captionCopy.spaceBefore)}"/></a:spcBef>` : ''}
+        ${captionCopy.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(captionCopy.spaceAfter)}"/></a:spcAft>` : ''}
+        <a:buNone/>
+        <a:defRPr sz="${Math.round(captionCopy.fontSize * 100)}" kern="1200" spc="${getSpc(captionCopy.fontSize, captionCopy.letterSpacing)}" b="${getWeight(captionCopy.fontId, captionCopy.fontWeight)}" i="${getItalic(captionCopy.fontId)}" ${captionCopy.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+          <a:solidFill>
+            <a:schemeClr val="tx1"/>
+          </a:solidFill>
+          <a:latin typeface="${fonts.captionCopy.lt}"/>
+          <a:ea typeface="${fonts.captionCopy.ea}"/>
+          <a:cs typeface="${fonts.captionCopy.cs}"/>
+        </a:defRPr>
+      </a:lvl8pPr>
+      <!-- Level 9: Caption Bullet (10.5pt Calibre, en dash) -->
+      <a:lvl9pPr marL="${inchesToEMU(typography.captionBullet.bulletMargin)}" indent="${inchesToEMU(typography.captionBullet.bulletIndent)}" algn="${getAlign(typography.captionBullet.alignment)}" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1">
+        <a:lnSpc>
+          <a:spcPct val="${getLnSpc(typography.captionBullet.lineHeight)}"/>
+        </a:lnSpc>
+        ${typography.captionBullet.spaceBefore ? `<a:spcBef><a:spcPts val="${getPtPct(typography.captionBullet.spaceBefore)}"/></a:spcBef>` : ''}
+        ${typography.captionBullet.spaceAfter ? `<a:spcAft><a:spcPts val="${getPtPct(typography.captionBullet.spaceAfter)}"/></a:spcAft>` : ''}
+        ${typography.captionBullet.bulletChar ? `<a:buChar char="${typography.captionBullet.bulletChar}"/>` : '<a:buNone/>'}
+        <a:defRPr sz="${Math.round(typography.captionBullet.fontSize * 100)}" kern="1200" spc="${getSpc(typography.captionBullet.fontSize, typography.captionBullet.letterSpacing)}" b="${getWeight(typography.captionBullet.fontId, typography.captionBullet.fontWeight)}" i="${getItalic(typography.captionBullet.fontId)}" ${typography.captionBullet.textTransform === 'uppercase' ? 'cap="all"' : ''}>
+          <a:solidFill>
+            <a:schemeClr val="tx1"/>
+          </a:solidFill>
+          <a:latin typeface="${utils.getFontRefs(typography.captionBullet.fontId).lt}"/>
+          <a:ea typeface="${utils.getFontRefs(typography.captionBullet.fontId).ea}"/>
+          <a:cs typeface="${utils.getFontRefs(typography.captionBullet.fontId).cs}"/>
+        </a:defRPr>
+      </a:lvl9pPr>
     </p:bodyStyle>
     <p:otherStyle>
       <a:defPPr>
@@ -552,6 +514,122 @@ function generateTextStyles(typography: TypographyConfig, fontLibrary: FontAsset
       </a:lvl1pPr>
     </p:otherStyle>
   </p:txStyles>`;
+}
+
+// ============================================================================
+// FOOTER AND PAGE NUMBER FOR MASTER SLIDE (CBRE Style)
+// ============================================================================
+
+/**
+ * Generate footer text shape for master slide
+ * This appears on all slides unless overridden by layout
+ * Aligned with CBRE grid system
+ */
+function generateFooterShape(slideSize: OOXMLSlideSize): string {
+  // CBRE Grid alignment: Column 1 start = 80px, Y = 1024px (horizontal guide)
+  // For 16:9 (1920x1080): 1px = 9144000/1920 = 4762.5 EMU
+  const emuPerPixelX = slideSize.cx / 1920;
+  const emuPerPixelY = slideSize.cy / 1080;
+
+  // Footer: x=80px (Col 1), y=1024px (guide), width=900px, height=40px
+  const x = Math.round(80 * emuPerPixelX);
+  const y = Math.round(1024 * emuPerPixelY);
+  const cx = Math.round(900 * emuPerPixelX);
+  const cy = Math.round(40 * emuPerPixelY);
+
+  const currentYear = new Date().getFullYear();
+
+  return `<p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="100" name="Footer"/>
+          <p:cNvSpPr txBox="1"/>
+          <p:nvPr userDrawn="1"/>
+        </p:nvSpPr>
+        <p:spPr>
+          <a:xfrm>
+            <a:off x="${x}" y="${y}"/>
+            <a:ext cx="${cx}" cy="${cy}"/>
+          </a:xfrm>
+          <a:prstGeom prst="rect">
+            <a:avLst/>
+          </a:prstGeom>
+          <a:noFill/>
+        </p:spPr>
+        <p:txBody>
+          <a:bodyPr wrap="square" lIns="0" tIns="0" rIns="0" bIns="0">
+            <a:spAutoFit/>
+          </a:bodyPr>
+          <a:lstStyle/>
+          <a:p>
+            <a:pPr marL="0" algn="l"/>
+            <a:r>
+              <a:rPr lang="en-US" sz="800" dirty="0">
+                <a:latin typeface="+mn-lt"/>
+                <a:solidFill>
+                  <a:schemeClr val="tx1"/>
+                </a:solidFill>
+              </a:rPr>
+              <a:t>Confidential &amp; Proprietary | © ${currentYear} CBRE, Inc.</a:t>
+            </a:r>
+            <a:endParaRPr lang="en-US"/>
+          </a:p>
+        </p:txBody>
+      </p:sp>`;
+}
+
+/**
+ * Generate page number shape for master slide
+ * This appears on all slides unless overridden by layout
+ * Aligned with CBRE grid system
+ */
+function generatePageNumberShape(slideSize: OOXMLSlideSize): string {
+  // CBRE Grid alignment: Right-align at Column 22 end = 1840px, Y = 1024px (horizontal guide)
+  // For 16:9 (1920x1080): 1px = 9144000/1920 = 4762.5 EMU
+  const emuPerPixelX = slideSize.cx / 1920;
+  const emuPerPixelY = slideSize.cy / 1080;
+
+  // Page number: x=1760px (right-aligned in 80px box ending at 1840), y=1024px, width=80px, height=40px
+  const x = Math.round(1760 * emuPerPixelX);
+  const y = Math.round(1024 * emuPerPixelY);
+  const cx = Math.round(80 * emuPerPixelX);
+  const cy = Math.round(40 * emuPerPixelY);
+
+  return `<p:sp>
+        <p:nvSpPr>
+          <p:cNvPr id="101" name="Slide Number"/>
+          <p:cNvSpPr txBox="1"/>
+          <p:nvPr userDrawn="1"/>
+        </p:nvSpPr>
+        <p:spPr>
+          <a:xfrm>
+            <a:off x="${x}" y="${y}"/>
+            <a:ext cx="${cx}" cy="${cy}"/>
+          </a:xfrm>
+          <a:prstGeom prst="rect">
+            <a:avLst/>
+          </a:prstGeom>
+          <a:noFill/>
+        </p:spPr>
+        <p:txBody>
+          <a:bodyPr wrap="square" lIns="0" tIns="0" rIns="0" bIns="0">
+            <a:spAutoFit/>
+          </a:bodyPr>
+          <a:lstStyle/>
+          <a:p>
+            <a:pPr marL="0" algn="r"/>
+            <a:fld id="{E4F4C915-1F4D-4F0A-8C36-2F7C6B8D9E3A}" type="slidenum">
+              <a:rPr lang="en-US" sz="800" dirty="0">
+                <a:latin typeface="+mn-lt"/>
+                <a:solidFill>
+                  <a:schemeClr val="tx1"/>
+                </a:solidFill>
+              </a:rPr>
+              <a:t>‹#›</a:t>
+            </a:fld>
+            <a:endParaRPr lang="en-US"/>
+          </a:p>
+        </p:txBody>
+      </p:sp>`;
 }
 
 // Generate slide master relationships file

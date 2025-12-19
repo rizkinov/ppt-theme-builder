@@ -63,6 +63,19 @@ export function SlidePreview({
     }
 
     const style = config.typography[styleName];
+    if (!style) {
+      // Fallback if style doesn't exist
+      return {
+        fontFamily: 'var(--font-calibre)',
+        fontSize: '12pt',
+        fontWeight: 400,
+        lineHeight: 1.2,
+        letterSpacing: '0em',
+        color: config.theme.colors.dark1,
+        textTransform: 'none' as const,
+      };
+    }
+
     // Scale font size based on layout scaling to maintain relative proportion
     // Using the average of X and Y scaling to keep it somewhat consistent
     const layoutFontScale = (layoutScaleX + layoutScaleY) / 2;

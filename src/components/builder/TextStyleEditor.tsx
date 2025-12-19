@@ -9,6 +9,7 @@ import { SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/src/com
 import { Slider } from '@/src/components/ui/slider';
 import { TextStyle, FontAsset, ThemeColors, ThemeColorKey } from '@/src/lib/builder/types';
 import { cn } from '@/lib/utils';
+import { AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
 
 // Theme color options for the dropdown
 const THEME_COLOR_OPTIONS: { key: ThemeColorKey; label: string }[] = [
@@ -219,6 +220,156 @@ export function TextStyleEditor({
         </div>
       </div>
 
+      {/* Paragraph Spacing */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label className="text-dark-grey font-calibre">Space Before (pt)</Label>
+          <Input
+            type="number"
+            value={style.spaceBefore || 0}
+            onChange={(e) => onChange({ spaceBefore: parseFloat(e.target.value) || 0 })}
+            min={0}
+            max={72}
+            step={0.5}
+            className="font-calibre"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-dark-grey font-calibre">Space After (pt)</Label>
+          <Input
+            type="number"
+            value={style.spaceAfter || 0}
+            onChange={(e) => onChange({ spaceAfter: parseFloat(e.target.value) || 0 })}
+            min={0}
+            max={72}
+            step={0.5}
+            className="font-calibre"
+          />
+        </div>
+      </div>
+
+      {/* Alignment */}
+      <div className="space-y-2">
+        <Label className="text-dark-grey font-calibre">Text Alignment</Label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onChange({ alignment: 'left' })}
+            className={cn(
+              "flex-1 h-10 flex items-center justify-center border transition-colors",
+              style.alignment === 'left' || !style.alignment
+                ? "border-cbre-green bg-cbre-green/10 text-cbre-green"
+                : "border-light-grey text-dark-grey hover:border-dark-grey"
+            )}
+          >
+            <AlignLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange({ alignment: 'center' })}
+            className={cn(
+              "flex-1 h-10 flex items-center justify-center border transition-colors",
+              style.alignment === 'center'
+                ? "border-cbre-green bg-cbre-green/10 text-cbre-green"
+                : "border-light-grey text-dark-grey hover:border-dark-grey"
+            )}
+          >
+            <AlignCenter className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange({ alignment: 'right' })}
+            className={cn(
+              "flex-1 h-10 flex items-center justify-center border transition-colors",
+              style.alignment === 'right'
+                ? "border-cbre-green bg-cbre-green/10 text-cbre-green"
+                : "border-light-grey text-dark-grey hover:border-dark-grey"
+            )}
+          >
+            <AlignRight className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onChange({ alignment: 'justify' })}
+            className={cn(
+              "flex-1 h-10 flex items-center justify-center border transition-colors",
+              style.alignment === 'justify'
+                ? "border-cbre-green bg-cbre-green/10 text-cbre-green"
+                : "border-light-grey text-dark-grey hover:border-dark-grey"
+            )}
+          >
+            <AlignJustify className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Bullet/List Formatting */}
+      <div className="space-y-4 pt-4 border-t border-light-grey">
+        <Label className="text-dark-grey font-calibre-semibold">Bullet Formatting</Label>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <CBRESelect
+              label="Bullet Character"
+              value={style.bulletChar || 'none'}
+              onValueChange={(value) => onChange({ bulletChar: value === 'none' ? '' : value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="–">– (En Dash)</SelectItem>
+                <SelectItem value="•">• (Bullet)</SelectItem>
+                <SelectItem value="◦">◦ (Hollow Bullet)</SelectItem>
+                <SelectItem value="▪">▪ (Square)</SelectItem>
+              </SelectContent>
+            </CBRESelect>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-dark-grey font-calibre">Margin (in)</Label>
+            <Input
+              type="number"
+              value={style.bulletMargin || 0}
+              onChange={(e) => onChange({ bulletMargin: parseFloat(e.target.value) || 0 })}
+              min={0}
+              max={2}
+              step={0.01}
+              className="font-calibre"
+              disabled={!style.bulletChar}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-dark-grey font-calibre">Indent (in)</Label>
+            <Input
+              type="number"
+              value={style.bulletIndent || 0}
+              onChange={(e) => onChange({ bulletIndent: parseFloat(e.target.value) || 0 })}
+              min={-2}
+              max={2}
+              step={0.01}
+              className="font-calibre"
+              disabled={!style.bulletChar}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-dark-grey font-calibre">Left Margin (in)</Label>
+          <Input
+            type="number"
+            value={style.marginLeft || 0}
+            onChange={(e) => onChange({ marginLeft: parseFloat(e.target.value) || 0 })}
+            min={0}
+            max={5}
+            step={0.01}
+            className="font-calibre"
+          />
+        </div>
+      </div>
+
       {/* Preview */}
       {showPreview && currentFont && (
         <div className="p-4 bg-lighter-grey border border-light-grey">
@@ -233,8 +384,11 @@ export function TextStyleEditor({
               textTransform: style.textTransform,
               fontStyle: currentFont.style,
               fontWeight: currentFont.weight || 'normal',
+              textAlign: style.alignment || 'left',
+              marginLeft: `${(style.marginLeft || 0) * 96}px`, // Convert inches to px for preview
             }}
           >
+            {style.bulletChar && <span>{style.bulletChar} </span>}
             The quick brown fox jumps over the lazy dog
           </p>
         </div>
