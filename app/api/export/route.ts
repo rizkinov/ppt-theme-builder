@@ -15,11 +15,9 @@ export async function POST(request: NextRequest) {
     }
 
     const config = JSON.parse(configJson);
-    console.log('📦 Export API called for:', config.name);
 
     // Convert app config to POTX config format
     const potxConfig = convertToPOTXConfig(config);
-    console.log('📝 Generating POTX with theme:', potxConfig.name);
 
     // Pre-process font library to ensure all fonts (local or remote) have valid Blob data for embedding
     // This allows generatePOTX to embed them regardless of whether they are local defaults or remote uploads
@@ -284,8 +282,6 @@ Happy presenting! 🎉
 
     // Generate ZIP blob
     const zipBlob = await zip.generateAsync({ type: 'blob' });
-
-    console.log('✅ Export complete:', `${templateName}.zip`);
 
     // Return ZIP file
     return new NextResponse(zipBlob, {

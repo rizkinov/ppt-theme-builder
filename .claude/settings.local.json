@@ -7,9 +7,19 @@
       "Bash(npm install)",
       "Bash(npm install:*)",
       "Bash(npm run dev:*)",
-      "Bash(npm search:*)"
+      "Bash(npm search:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(echo $env:USERPROFILE)",
+      "Read(//c/Users/rizki/**)",
+      "Bash(cat:*)",
+      "Bash(claude update)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nchore: codebase cleanup and add CLAUDE.md\n\n- Add CLAUDE.md for Claude Code guidance\n- Remove duplicate CSS variable files \\(config/, src/styles/\\)\n- Remove duplicate use-mobile hook \\(src/hooks/\\)\n- Remove unused debug CSS classes from globals.css\n- Clean up debug console.log statements\n- Configure Supabase client for font storage\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "model": "claude-opus-4-5"
 }

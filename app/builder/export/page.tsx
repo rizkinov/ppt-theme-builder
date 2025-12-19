@@ -85,7 +85,6 @@ export default function ExportPage() {
       toast.success('Template exported successfully!');
       setExportProgress('');
     } catch (error) {
-      console.error('Export error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to export template');
       setExportProgress('');
     } finally {
